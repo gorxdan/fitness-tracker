@@ -83,9 +83,14 @@ properties + entitlements); `Pulse/Info.plist` is generated from them. Adding or
 changing a permission = edit `project.yml`, regenerate, update `docs/INTEGRATIONS.md`
 in the same change.
 
-## Git
+## Git & CI
 
-Local-only repo on `master`, no remote. Plain commits; no push or PR workflow.
+`master` is the working branch. Remote hosting (GitHub) enables the free CI path:
+`.github/workflows/ios.yml` runs on `macos-26` — xcodegen generate, unsigned simulator
+build of the app, PulseCore tests. Public repo = free macOS runners; private repo draws
+from the 2,000 free Actions minutes/month at a 10× macOS multiplier (~200 build minutes).
+Signed device builds still require a local Mac (free provisioning can't be exported to CI).
+Plain commits; no push or PR workflow beyond CI.
 
 ## Workflow phases (agreed with owner)
 

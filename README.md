@@ -28,6 +28,13 @@ cd PulseCore && swift test
 `PulseCore/` holds the platform-free domain logic (pure Foundation); everything under `Pulse/`
 needs Apple SDKs and builds only via Xcode.
 
+## CI (free macOS builds)
+
+`.github/workflows/ios.yml` builds the app on GitHub's `macos-26` runner (unsigned simulator
+build + PulseCore tests). On a public repo that's free; on a private repo it draws from the
+2,000 free Actions minutes/month (macOS runners bill at 10×, so ~200 real build minutes).
+Alternative free option: Codemagic, 500 Mac minutes/month for personal accounts.
+
 ## What exists now
 
 - Full documentation set (`docs/`)
