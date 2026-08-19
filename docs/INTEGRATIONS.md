@@ -21,6 +21,18 @@
 - Developer Program membership ($99/yr) required for catalog API — note in Settings if
   unauthorized; playback of user's own library still works with standard signing.
 
+## Location (gym arrival)
+
+- Framework: CoreLocation region monitoring + UserNotifications. No third-party dependency.
+- Permission model: request **When In Use** at first gym save. Region-monitoring events that
+  launch the app from the background require **Always** — Settings shows a one-tap upgrade
+  prompt and explains why ("so Pulse can notice you arrived at the gym"). App works fully
+  without it; only arrival prompts degrade.
+- Flow: save gym → register `CLCircularRegion` (id = gym UUID, radius default 100 m).
+  `didEnterRegion` → local notification → tap deep-links to session screen.
+- iOS limits ~20 monitored regions per app; personal use won't hit it, but re-registration
+  keeps the most recently used gyms monitored.
+
 ## Spotify
 
 - SDK: `https://github.com/spotify/ios-sdk` via SPM (add to `project.yml` when the music
@@ -47,4 +59,6 @@ gets old, one paid Developer Program membership solves it. No App Store review i
 NSHealthShareUsageDescription      Pulse reads your heart rate, workouts, weight and height to show progress.
 NSHealthUpdateUsageDescription     Pulse saves the workouts you log to Health.
 NSAppleMusicUsageDescription       Pulse links playlists from your Apple Music library to workouts.
+NSLocationWhenInUseUsageDescription    Pulse saves your gym locations on a map.
+NSLocationAlwaysAndWhenInUseUsageDescription  With Always access, Pulse can notice when you arrive at the gym and offer to start your workout.
 ```

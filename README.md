@@ -21,8 +21,9 @@ Unit tests: `xcodebuild test -project Pulse.xcodeproj -scheme Pulse -destination
 
 - Full documentation set (`docs/`)
 - Xcode project spec (`project.yml`, xcodegen) with HealthKit entitlement + all permission strings
-- SwiftData models: Exercise, Workout, SetEntry, Goal
+- SwiftData models: Exercise, Workout, SetEntry, Goal, GymLocation
 - Domain math (BMI, Epley 1RM, volume) with unit tests
 - HealthKit service (auth, body mass/height, per-workout HR stats, save workout)
 - Music controller abstraction with Spotify/Apple Music service stubs
+- Gym location model + arrival-detection service skeleton
 - Tab skeleton: Home / Progress / Settings with real empty state and Health permission button

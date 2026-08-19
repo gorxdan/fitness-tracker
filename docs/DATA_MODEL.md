@@ -54,6 +54,17 @@ add `distanceKm: Double?` to `SetEntry`. (Decision recorded here so it isn't imp
 Derived progress: weeklyWorkouts = count this week; bodyWeight = latest HealthKit mass;
 oneRepMax = max Epley estimate for that exercise.
 
+### `GymLocation`
+| Field | Type | Notes |
+|---|---|---|
+| `id` | `UUID` | |
+| `name` | `String` | e.g. "Ironworks" |
+| `latitude` / `longitude` | `Double` | center of geofence |
+| `radiusMeters` | `Double` | default 100, user-adjustable |
+
+Drives `CLCircularRegion` monitoring in `LocationService`; arrival → local notification →
+"start a workout?" deep link into the session screen.
+
 ## Derived (never stored)
 
 - **BMI** = mass kg / (height m)², from HealthKit height + latest mass. Category bands use

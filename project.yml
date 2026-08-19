@@ -25,6 +25,8 @@ targets:
         NSHealthShareUsageDescription: Pulse reads your heart rate, workouts, weight and height to show progress.
         NSHealthUpdateUsageDescription: Pulse saves the workouts you log to Health.
         NSAppleMusicUsageDescription: Pulse links playlists from your Apple Music library to workouts.
+        NSLocationWhenInUseUsageDescription: Pulse saves your gym locations on a map.
+        NSLocationAlwaysAndWhenInUseUsageDescription: With Always access, Pulse can notice when you arrive at the gym and offer to start your workout.
         LSApplicationQueriesSchemes:
           - spotify
         CFBundleURLTypes:

@@ -17,7 +17,10 @@ only inbound data source, Spotify/Apple Music the only outbound integrations.
    HR stats.
 5. **Goals.** Simple targets: weekly workouts, weight (kg/lb), estimated 1RM for an exercise.
    Status shown on Home.
-6. **Music per workout.** Attach one Spotify or Apple Music playlist to a workout; one tap to
+6. **Gym locations.** Save named gym locations (map pin or current location). Arriving at a
+   saved gym triggers a local notification: "At Ironworks — start a workout?" tapping it opens
+   the session screen with workout templates ready to pick.
+7. **Music per workout.** Attach one Spotify or Apple Music playlist to a workout; one tap to
    start playback when the session starts. Playback control stays in the session screen.
 
 ## Later (not in MVP)

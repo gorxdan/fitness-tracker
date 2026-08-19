@@ -7,6 +7,6 @@ struct PulseApp: App {
         WindowGroup {
             RootTabView()
         }
-        .modelContainer(for: [Workout.self, SetEntry.self, Exercise.self, Goal.self])
+        .modelContainer(for: [Workout.self, SetEntry.self, Exercise.self, Goal.self, GymLocation.self])
     }
 }
