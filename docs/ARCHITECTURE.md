@@ -15,14 +15,14 @@
 ## Layers
 
 ```
+PulseCore/          platform-free SwiftPM package (pure Foundation): domain math + tests
 Pulse/
   App/          app entry, root tab view, ModelContainer setup
   Features/     Home, Session (workout logging), Progress, Settings — SwiftUI views + view models
   Domain/
     Models/     SwiftData @Model classes (see docs/DATA_MODEL.md)
-    Logic/      pure functions: BMI, volume, estimated 1RM (Epley), streaks
   Services/     protocols + implementations, one file each:
-                HealthKitService, SpotifyService, AppleMusicService, MusicController
+                HealthKitService, LocationService, SpotifyService, AppleMusicService, MusicController
 ```
 
 Rules:
@@ -58,14 +58,18 @@ without music and the UI says why in one line.
 
 ## Verification workflow (phase 2 gate)
 
+On this Linux box — now real, not just structural:
+1. `cd PulseCore && swift test` — domain logic compiles and tests pass (Swift 6.3 toolchain at
+   `~/swift`; package is pure Foundation, no Apple frameworks).
+
 On a Mac:
-1. `xcodegen generate` — project generates clean.
-2. `xcodebuild … build` for the app target — zero warnings policy for new code.
-3. `xcodebuild … test` — `PulseTests` green (domain logic + service fakes).
+2. `xcodegen generate` — project generates clean.
+3. `xcodebuild … build` for the app target — zero warnings policy for new code.
 4. Simulator manual pass: launch, tab through Home/Progress/Settings, exercise HealthKit
    permission prompt (Simulator has sample Health data), verify empty states.
 5. Device pass before calling any integration "done": AirPods Pro 3 HR visible on a finished
-   workout, playlist playback from both providers, workout saved back to Apple Fitness.
+   workout, playlist playback from both providers, workout saved back to Apple Fitness,
+   gym-arrival notification firing.
 
-On this Linux box (phase where docs/skeleton were authored): structural verification only —
-see the audit report; nothing requiring a Mac toolchain was claimed as verified.
+Rule: new pure logic goes in `PulseCore/` (Linux-verifiable); only code that genuinely needs
+an Apple framework goes in `Pulse/`.

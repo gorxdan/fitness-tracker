@@ -1,5 +1,5 @@
 import Testing
-@testable import Pulse
+@testable import PulseCore
 
 @Test func bmiKnownValue() {
     // 70 kg, 1.75 m → 22.86
@@ -21,12 +21,13 @@ import Testing
 }
 
 @Test func epleyOneRepMax() {
-    // 100 kg × (1 + 5/30) = 116.67
+    // 100 kg × (1 + 5/30) = 116.67; formula applies at any rep count.
     #expect(abs(FitnessMath.oneRepMax(weightKg: 100, reps: 5) - 116.67) < 0.01)
-    #expect(FitnessMath.oneRepMax(weightKg: 100, reps: 1) == 100)
+    #expect(abs(FitnessMath.oneRepMax(weightKg: 100, reps: 1) - 103.33) < 0.01)
 }
 
 @Test func totalVolumeSumsSets() {
+    // 10×60 + 10×62.5 + 8×65 = 600 + 625 + 520
     let sets = [(reps: 10, weightKg: 60.0), (reps: 10, weightKg: 62.5), (reps: 8, weightKg: 65.0)]
-    #expect(FitnessMath.totalVolume(sets) == 1720)
+    #expect(FitnessMath.totalVolume(sets) == 1745)
 }

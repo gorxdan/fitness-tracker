@@ -13,6 +13,7 @@ targets:
     platform: iOS
     sources:
       - Pulse
+      - PulseCore/Sources/PulseCore
     info:
       path: Pulse/Info.plist
       properties:
@@ -37,10 +38,3 @@ targets:
       path: Pulse/Pulse.entitlements
       properties:
         com.apple.developer.healthkit: true
-  PulseTests:
-    type: bundle.unit-test
-    platform: iOS
-    sources:
-      - PulseTests
-    dependencies:
-      - target: Pulse

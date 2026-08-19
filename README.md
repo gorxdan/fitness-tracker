@@ -15,14 +15,21 @@ xcodegen generate
 open Pulse.xcodeproj    # run the Pulse scheme on a simulator or device
 ```
 
-Unit tests: `xcodebuild test -project Pulse.xcodeproj -scheme Pulse -destination 'platform=iOS Simulator,name=iPhone 17'`
+## Domain tests (any OS, including Linux)
+
+```
+cd PulseCore && swift test
+```
+
+`PulseCore/` holds the platform-free domain logic (pure Foundation); everything under `Pulse/`
+needs Apple SDKs and builds only via Xcode.
 
 ## What exists now
 
 - Full documentation set (`docs/`)
 - Xcode project spec (`project.yml`, xcodegen) with HealthKit entitlement + all permission strings
 - SwiftData models: Exercise, Workout, SetEntry, Goal, GymLocation
-- Domain math (BMI, Epley 1RM, volume) with unit tests
+- Domain math (BMI, Epley 1RM, volume) in `PulseCore/` with unit tests — runs on Linux
 - HealthKit service (auth, body mass/height, per-workout HR stats, save workout)
 - Music controller abstraction with Spotify/Apple Music service stubs
 - Gym location model + arrival-detection service skeleton

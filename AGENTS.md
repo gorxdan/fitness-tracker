@@ -25,13 +25,19 @@ notes, music per workout). Local-first, no backend, single user (the owner's iPh
 | Swift | 6.x | Strict concurrency enabled |
 | Project generation | xcodegen | `project.yml` is the source of truth. `Pulse.xcodeproj` is generated, never hand-edited |
 | Dependencies | None yet | Spotify iOS SDK added later via SPM (see `docs/INTEGRATIONS.md`); keep it the only one |
+| Linux verification | Swift 6.3 toolchain (`~/swift`) | `PulseCore/` is platform-free SwiftPM; `swift test` there runs on this box. Only `PulseCore/` is Linux-buildable — anything importing SwiftUI/SwiftData/HealthKit/MusicKit/CoreLocation is macOS/Xcode-only |
 
 Build commands (run on macOS, from repo root):
 
 ```
 xcodegen generate
 xcodebuild -project Pulse.xcodeproj -scheme Pulse -destination 'platform=iOS Simulator,name=iPhone 17' build
-xcodebuild -project Pulse.xcodeproj -scheme Pulse -destination 'platform=iOS Simulator,name=iPhone 17' test
+```
+
+Domain tests (any OS with a Swift 6+ toolchain, including this Linux box):
+
+```
+cd PulseCore && swift test
 ```
 
 ## Code conventions
@@ -45,8 +51,9 @@ xcodebuild -project Pulse.xcodeproj -scheme Pulse -destination 'platform=iOS Sim
 - **Charts:** Swift Charts only. No chart libraries.
 - **Formatting:** 4-space indent, 100-col soft limit, `swift-format` default style otherwise.
 - **Naming:** types `UpperCamelCase`, meaning-first (`WorkoutSession`, not `SessionManager`).
-- **Tests:** Swift Testing (`import Testing`). Pure domain logic (BMI, volume, streaks) gets unit
-  tests in `PulseTests/`. Feature tests come with the feature, not before it exists.
+- **Tests:** Swift Testing (`import Testing`). Pure domain logic lives in `PulseCore/` with its
+  tests (Linux-verifiable). Platform-bound tests (views, services) get an `PulseTests` target
+  back in xcodegen when they exist.
 
 ## Workflow phases (agreed with owner)
 
@@ -67,6 +74,6 @@ docs/ARCHITECTURE.md stack, layering, module map, verification workflow
 docs/DATA_MODEL.md   entities, fields, relationships, HealthKit mapping
 docs/INTEGRATIONS.md HealthKit / Spotify / Apple Music setup and permissions
 project.yml          xcodegen spec (source of truth for the Xcode project)
-Pulse/               app sources
-PulseTests/          unit tests
+Pulse/               app sources (platform-bound: SwiftUI/SwiftData/HealthKit/…)
+PulseCore/           platform-free SwiftPM package: domain logic + tests (Linux-verifiable)
 ```
