@@ -94,7 +94,7 @@ final class HealthKitService: HealthReading {
         )
         let descriptor = HKStatisticsCollectionQueryDescriptor(
             predicate: predicate,
-            options: .average,
+            options: .discreteAverage,
             anchorDate: Calendar.current.startOfDay(for: start),
             intervalComponents: DateComponents(weekOfYear: 1)
         )
@@ -162,7 +162,7 @@ final class HealthKitService: HealthReading {
             let query = HKStatisticsQuery(
                 quantityType: type,
                 quantitySamplePredicate: predicate,
-                options: [.average, .maximum]
+                options: [.discreteAverage, .discreteMax]
             ) { _, stats, _ in
                 continuation.resume(returning: stats)
             }
