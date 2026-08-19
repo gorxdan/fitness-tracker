@@ -1,8 +1,9 @@
 import Foundation
 import MusicKit
 
-/// Apple Music via MusicKit. Spotify stays a stub until the SDK is added on macOS
-/// (see docs/INTEGRATIONS.md) — the controller treats both identically.
+/// Apple Music via MusicKit. MainActor: ApplicationMusicPlayer is MainActor-isolated.
+/// Spotify stays a stub until the SDK is added on macOS (see docs/INTEGRATIONS.md).
+@MainActor
 final class AppleMusicService {
     var isAuthorized: Bool {
         MusicAuthorization.status == .authorized

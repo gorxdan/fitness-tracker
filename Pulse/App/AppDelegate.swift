@@ -6,15 +6,14 @@ extension Notification.Name {
     static let gymArrivalTapped = Notification.Name("pulse.gym.arrival.tapped")
 }
 
-/// Handles the "start a workout?" notification tap: routes the gym name into the app
-/// and lets the arrival banner show while the app is foregrounded.
-final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
-    func application(
-        _ application: UIApplication,
-        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
-    ) -> Bool {
-        UNUserNotificationCenter.current().delegate = self
-        return true
+/// Handles "start a workout?" notification taps. Standalone Sendable class: the
+/// UNUserNotificationCenterDelegate requirements are nonisolated, so they can't live
+/// on the MainActor-isolated AppDelegate.
+final class ArrivalNotificationDelegate: NSObject, Sendable, UNUserNotificationCenterDelegate {
+    static let shared = ArrivalNotificationDelegate()
+
+    private override init() {
+        super.init()
     }
 
     func userNotificationCenter(
@@ -34,5 +33,15 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         await MainActor.run {
             NotificationCenter.default.post(name: .gymArrivalTapped, object: gym)
         }
+    }
+}
+
+final class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(
+        _ application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+    ) -> Bool {
+        UNUserNotificationCenter.current().delegate = ArrivalNotificationDelegate.shared
+        return true
     }
 }

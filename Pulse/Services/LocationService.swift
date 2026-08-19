@@ -1,15 +1,6 @@
 import CoreLocation
 import UserNotifications
 
-/// Plain value passed to the service so CoreLocation code never touches SwiftData models.
-struct GymRegion: Sendable {
-    let id: UUID
-    let name: String
-    let latitude: Double
-    let longitude: Double
-    let radiusMeters: Double
-}
-
 /// Permission state for UI display — keeps CoreLocation types out of the views.
 enum LocationAccess: String {
     case notDetermined
@@ -33,13 +24,21 @@ extension LocationAccess {
     }
 }
 
-/// Gym arrival detection: geofences around saved gyms, local notification on entry.
-/// With When-In-Use access, monitoring works while the app is in use; background
-/// arrival prompts need Always (Settings explains this — see docs/INTEGRATIONS.md).
-final class LocationService: NSObject, CLLocationManagerDelegate {
-    /// (gym id, gym name) on region entry — the app layer schedules the notification.
-    var onArrival: (@Sendable (UUID, String) -> Void)?
+/// Plain value passed to the service so CoreLocation code never touches SwiftData models.
+struct GymRegion: Sendable {
+    let id: UUID
+    let name: String
+    let latitude: Double
+    let longitude: Double
+    let radiusMeters: Double
+}
 
+/// Gym arrival detection: geofences around saved gyms, local notification on entry.
+/// MainActor because CLLocationManager is MainActor-isolated in the SDK; the
+/// CLLocationManagerDelegate requirements are nonisolated, so their implementations
+/// are `nonisolated` shims that hop to the main actor.
+@MainActor
+final class LocationService: NSObject, CLLocationManagerDelegate {
     private let manager = CLLocationManager()
     private var gymNames: [String: String] = [:] // region identifier → gym name
     private var authContinuation: CheckedContinuation<CLAuthorizationStatus, Never>?
@@ -48,10 +47,6 @@ final class LocationService: NSObject, CLLocationManagerDelegate {
     override init() {
         super.init()
         manager.delegate = self
-    }
-
-    var authorizationStatus: CLAuthorizationStatus {
-        manager.authorizationStatus
     }
 
     /// UI-facing permission state (see LocationAccess).
@@ -90,7 +85,7 @@ final class LocationService: NSObject, CLLocationManagerDelegate {
             manager.stopMonitoring(for: region)
         }
         gymNames = Dictionary(uniqueKeysWithValues: gyms.map { ($0.id.uuidString, $0.name) })
-        guard manager.authorizationStatus.isPermitted else { return }
+        guard access.isPermitted else { return }
         for gym in gyms {
             let region = CLCircularRegion(
                 center: CLLocationCoordinate2D(latitude: gym.latitude, longitude: gym.longitude),
@@ -108,7 +103,7 @@ final class LocationService: NSObject, CLLocationManagerDelegate {
             .requestAuthorization(options: [.alert, .sound])) ?? false
     }
 
-    /// Fires the "at the gym" notification; the tap is routed by AppDelegate.
+    /// Fires the "at the gym" notification; the tap is routed by ArrivalNotificationDelegate.
     static func scheduleArrivalNotification(gymID: UUID, gymName: String) async {
         let content = UNMutableNotificationContent()
         content.title = "At \(gymName)"
@@ -122,35 +117,56 @@ final class LocationService: NSObject, CLLocationManagerDelegate {
         try? await UNUserNotificationCenter.current().add(request)
     }
 
-    // MARK: - CLLocationManagerDelegate
+    // MARK: - Main-actor event handling (called from the nonisolated shims below)
 
-    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+    private func resolveAuth() {
         guard manager.authorizationStatus != .notDetermined else { return }
         authContinuation?.resume(returning: manager.authorizationStatus)
         authContinuation = nil
     }
 
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard let location = locations.last else { return }
+    private func resolveLocation(_ location: CLLocation) {
         locationContinuation?.resume(returning: location)
         locationContinuation = nil
     }
 
-    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+    private func failLocation(_ error: Error) {
         locationContinuation?.resume(throwing: error)
         locationContinuation = nil
     }
 
-    func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
-        guard let name = gymNames[region.identifier],
-              let id = UUID(uuidString: region.identifier)
+    private func handleArrival(regionID: String) {
+        guard let name = gymNames[regionID],
+              let id = UUID(uuidString: regionID)
         else { return }
-        onArrival?(id, name)
+        Task {
+            await Self.scheduleArrivalNotification(gymID: id, gymName: name)
+        }
+    }
+
+    // MARK: - CLLocationManagerDelegate (nonisolated shims)
+
+    nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        Task { @MainActor in self.resolveAuth() }
+    }
+
+    nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let location = locations.last else { return }
+        Task { @MainActor in self.resolveLocation(location) }
+    }
+
+    nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        Task { @MainActor in self.failLocation(error) }
+    }
+
+    nonisolated func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
+        let identifier = region.identifier
+        Task { @MainActor in self.handleArrival(regionID: identifier) }
     }
 }
 
-extension CLAuthorizationStatus {
+extension LocationAccess {
     var isPermitted: Bool {
-        self == .authorizedWhenInUse || self == .authorizedAlways
+        self == .whenInUse || self == .always
     }
 }

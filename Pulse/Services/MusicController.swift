@@ -24,6 +24,7 @@ protocol MusicControlling: AnyObject {
     func pause() async
 }
 
+@MainActor
 final class MusicController: MusicControlling {
     private let spotify = SpotifyService()
     private let appleMusic = AppleMusicService()
