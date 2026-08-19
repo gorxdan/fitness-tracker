@@ -62,7 +62,7 @@ struct SettingsView: View {
             .navigationTitle("Settings")
             .task {
                 healthConnected = await services.health.isAuthorized()
-                appleMusicConnected = services.music.appleMusicStatus
+                appleMusicConnected = services.music.isAppleMusicAuthorized
             }
         }
     }
