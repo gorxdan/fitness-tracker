@@ -15,14 +15,17 @@
 ## Layers
 
 ```
-PulseCore/          platform-free SwiftPM package (pure Foundation): domain math + tests
+PulseCore/          platform-free SwiftPM package (pure Foundation): domain math, goal
+                    math, units, seed catalog + tests
 Pulse/
-  App/          app entry, root tab view, ModelContainer setup
-  Features/     Home, Session (workout logging), Progress, Settings — SwiftUI views + view models
+  App/          app entry, root tab view, AppDelegate (notification taps), AppServices,
+                AppState (session sheet + arrival deep link)
+  Features/     Home (+ workout detail), Session (logging, pickers, summary),
+                Progress (charts + history), Goals (+ editor), Gyms (+ editor), Settings
   Domain/
     Models/     SwiftData @Model classes (see docs/DATA_MODEL.md)
-  Services/     protocols + implementations, one file each:
-                HealthKitService, LocationService, SpotifyService, AppleMusicService, MusicController
+  Services/     HealthKitService, LocationService (geofence + notifications),
+                SpotifyService (stub), AppleMusicService (MusicKit), MusicController
 ```
 
 Rules:

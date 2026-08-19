@@ -16,8 +16,9 @@
 
 - No capability toggles; requires `NSAppleMusicUsageDescription` ("Media & Apple Music" usage).
 - Permission: `MusicAuthorization.request()` at first playlist pick, not at launch.
-- Playlist pick: user library query via `MusicCatalogSearchRequest`/library request — wrap in
-  `AppleMusicService`; playback via `ApplicationMusicPlayer` (no app switch needed).
+- **Implemented:** library playlist fetch (`MusicLibraryRequest<Playlist>`) and playback
+  via `ApplicationMusicPlayer`. Untested pending macOS build — the
+  `ApplicationMusicPlayer.Queue(for:)` call in particular needs simulator confirmation.
 - Developer Program membership ($99/yr) required for catalog API — note in Settings if
   unauthorized; playback of user's own library still works with standard signing.
 
@@ -35,6 +36,8 @@
 
 ## Spotify
 
+- Status: **stubbed** (`SpotifyService` returns `notImplemented`). The UI handles it
+  gracefully: playlists attach from Apple Music today; the picker shows a one-line note.
 - SDK: `https://github.com/spotify/ios-sdk` via SPM (add to `project.yml` when the music
   feature starts; kept out of the skeleton so generation stays dependency-free).
 - Developer dashboard app: redirect URI `pulse-spotify://callback`, URL scheme
