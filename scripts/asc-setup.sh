@@ -52,7 +52,8 @@ def der_to_raw(der):
             n = int.from_bytes(data[i:i + k], "big")
             i += k
         v = data[i:i + n]
-        return v.rjust(32, b"\0"), i + n
+        # ES256 wants exactly 32 bytes: strip DER sign-padding zeros, then left-pad.
+        return v.lstrip(b"\x00").rjust(32, b"\0"), i + n
 
     assert der[0] == 0x30, "expected SEQUENCE tag"
     i = 1
