@@ -41,23 +41,29 @@ der = subprocess.run(
 ).stdout
 
 def der_to_raw(der):
-    # Minimal DER parse: SEQUENCE { INTEGER r, INTEGER s } -> 64-byte r||s
-    def read(i):
-        n = der[i]
+    # ES256 signature DER: SEQUENCE { INTEGER r, INTEGER s } -> 64-byte r||s
+    def read_int(data, i):
+        assert data[i] == 0x02, "expected INTEGER tag"
+        i += 1
+        n = data[i]
         i += 1
         if n & 0x80:
             k = n & 0x7F
-            n = int.from_bytes(der[i:i + k], "big")
+            n = int.from_bytes(data[i:i + k], "big")
             i += k
-        v = der[i:i + n]
+        v = data[i:i + n]
         return v.rjust(32, b"\0"), i + n
-    i = der[1]
-    if i & 0x80:
-        i = int.from_bytes(der[2:2 + (i & 0x7F)], "big") + 2
-    else:
-        i = 2
-    r, i = read(i)
-    s, _ = read(i)
+
+    assert der[0] == 0x30, "expected SEQUENCE tag"
+    i = 1
+    n = der[i]
+    i += 1
+    if n & 0x80:
+        k = n & 0x7F
+        n = int.from_bytes(der[i:i + k], "big")
+        i += k
+    r, i = read_int(der, i)
+    s, _ = read_int(der, i)
     return r + s
 
 print((signing_input + b"." + b64(der_to_raw(der))).decode())
