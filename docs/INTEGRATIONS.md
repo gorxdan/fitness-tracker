@@ -50,11 +50,27 @@
 - Failure mode: Spotify app not installed / token expired → banner "Open Spotify and try again",
   workout continues unaffected.
 
-## Personal-build distribution
+## Distribution (no Mac): App Store Connect API + TestFlight
 
-Free provisioning is enough to install on the owner's iPhone, **but** HealthKit requires a
-proper App ID with the capability — free accounts allow it with 7-day re-sign cadence. If that
-gets old, one paid Developer Program membership solves it. No App Store review involved.
+The owner has an Apple Developer account. Everything signing-related is automated
+through the App Store Connect API from Linux — no Xcode, no Mac:
+
+1. **One-time setup:** create an API key in App Store Connect (Users and Access →
+   Integrations → App Store Connect API, role Admin or App Manager), then run
+   `scripts/asc-setup.sh`. It registers the bundle ID (`com.gorxfitness.pulse`),
+   enables HealthKit on it, creates the App record, an IOS_DISTRIBUTION certificate
+   (CSR generated locally with openssl), and an App Store provisioning profile —
+   then prints the exact `gh secret set` commands.
+2. **Per-build:** `.github/workflows/testflight.yml` (manual dispatch) imports the
+   certificate + profile, archives, exports the IPA with
+   `scripts/ExportOptions.plist`, and uploads with `xcrun altool` using the same API
+   key. Build lands in TestFlight after Apple processing.
+3. First TestFlight build requires answering export compliance in App Store Connect
+   (standard encryption; answer the questions for a fitness app with no crypto of
+   its own). Internal testing needs no beta review; external does.
+
+Secrets: `ASC_TEAM_ID`, `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY` (base64 .p8),
+`DIST_P12` (base64), `P12_PASSWORD`, `PROFILE` (base64 mobileprovision).
 
 ## Permission strings (single source of truth)
 

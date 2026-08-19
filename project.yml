@@ -14,6 +14,9 @@ targets:
     sources:
       - Pulse
       - PulseCore/Sources/PulseCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.gorxfitness.pulse
     info:
       path: Pulse/Info.plist
       properties:
@@ -31,7 +34,7 @@ targets:
         LSApplicationQueriesSchemes:
           - spotify
         CFBundleURLTypes:
-          - CFBundleURLName: com.dan.Pulse.spotify
+          - CFBundleURLName: com.gorxfitness.pulse.spotify
             CFBundleURLSchemes:
               - pulse-spotify
     entitlements:
