@@ -6,7 +6,7 @@ import MusicKit
 @MainActor
 final class AppleMusicService {
     var isAuthorized: Bool {
-        MusicAuthorization.status == .authorized
+        MusicAuthorization.currentStatus == .authorized
     }
 
     /// Requests permission if not yet determined; returns availability.
@@ -26,11 +26,13 @@ final class AppleMusicService {
     func play(_ playlist: PlaylistRef) async throws {
         var request = MusicLibraryRequest<Playlist>()
         request.filter(matching: \.id, memberOf: [MusicItemID(playlist.id)])
-        guard let found = try await request.response().items.first else {
+        guard var found = try await request.response().items.first else {
             throw MusicError.notAvailable
         }
+        // Playlists aren't playable items themselves — queue their tracks.
+        found = try await found.with([.tracks])
         let player = ApplicationMusicPlayer.shared
-        player.queue = ApplicationMusicPlayer.Queue(for: found)
+        player.queue = ApplicationMusicPlayer.Queue(for: found.tracks)
         try await player.play()
     }
 

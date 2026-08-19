@@ -23,7 +23,7 @@ struct ExercisePickerView: View {
             List {
                 Picker("Muscle group", selection: $group) {
                     Text("All").tag(MuscleGroup?.none)
-                    ForEach(MuscleGroup.allCases.filter { $0 != .cardio }) { group in
+                    ForEach(MuscleGroup.allCases.filter { $0 != .cardio }, id: \.self) { group in
                         Text(group.rawValue.capitalized).tag(MuscleGroup?.some(group))
                     }
                     Text("Cardio").tag(MuscleGroup?.some(.cardio))
