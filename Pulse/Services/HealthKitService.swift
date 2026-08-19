@@ -99,10 +99,10 @@ final class HealthKitService: HealthReading {
             intervalComponents: DateComponents(weekOfYear: 1)
         )
         do {
-            let results = try await descriptor.results(for: store)
+            // result(for:) returns the whole collection (non-streaming); enumerate it.
+            let collection = try await descriptor.result(for: store)
             var series: [DatedValue] = []
-            for try await element in results {
-                guard case .statistics(let stats) = element else { continue }
+            collection.enumerateStatistics(from: start, to: end) { stats, _ in
                 if let avg = stats.averageQuantity()?.doubleValue(for: unit) {
                     series.append(DatedValue(date: stats.startDate, value: avg))
                 }
