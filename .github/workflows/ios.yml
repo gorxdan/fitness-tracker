@@ -29,7 +29,15 @@ jobs:
           set -o pipefail
           xcodebuild -project Pulse.xcodeproj -scheme Pulse \
             -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build/DD \
             CODE_SIGNING_ALLOWED=NO build
+
+      - name: Upload app artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Pulse-app
+          path: build/DD/Build/Products/*/Pulse.app
+          retention-days: 30
 
       - name: PulseCore unit tests
         run: |
