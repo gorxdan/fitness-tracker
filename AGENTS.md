@@ -1,20 +1,45 @@
-# AGENTS.md — Conventions for AI agents working in this repo
+# AGENTS.md
 
-App: **Pulse** — a personal-use iOS fitness tracker (workouts, goals, body metrics, workout
-notes, music per workout). Local-first, no backend, single user (the owner's iPhone).
+Conventions for **Pulse** — a personal-use iOS fitness tracker (workouts, goals, body
+metrics, per-workout notes, music per workout). Local-first, no backend, single user
+(the owner's iPhone). Development happens on a Linux box without Xcode; read `## Rules`
+and `## Workflow phases` before structuring any change.
 
-## Ground rules
+## Layout
 
-1. **macOS-only builds.** Swift/Xcode toolchains do not exist on Linux. Do not claim a build,
-   test run, or simulator verification happened unless terminal output shows it. On this
-   machine, verify what is verifiable: file structure, naming consistency, doc↔code agreement.
-2. **Docs are the contract.** `docs/PRODUCT.md`, `docs/ARCHITECTURE.md`, `docs/DATA_MODEL.md`,
-   `docs/INTEGRATIONS.md` define what to build. If code and docs disagree, either fix the code
-   or update the doc in the same change — never let them drift silently.
-3. **Scope discipline.** Personal app: no accounts, no cloud sync, no analytics, no onboarding
-   screens beyond permission prompts. When in doubt, cut the feature, don't abstract it.
-4. **No word salad.** Docs and code comments state facts in plain sentences. No marketing tone,
-   no filler paragraphs, no "This class represents a class that…".
+`docs/` (the contract: product, architecture, data model, integrations) | `Pulse/App`
+(entry point, root tab view) | `Pulse/Features/<Feature>/` (SwiftUI views) |
+`Pulse/Domain/` (SwiftData `@Model` classes + pure logic) | `Pulse/Services/` (HealthKit,
+Spotify, Apple Music, location — behind protocols) | `PulseCore/` (platform-free SwiftPM
+package: domain math + tests; the only Linux-buildable tree) | `project.yml` (xcodegen
+spec — source of truth for `Pulse.xcodeproj`)
+
+## Rules
+
+Docs are the contract (`docs/PRODUCT.md`, `docs/ARCHITECTURE.md`, `docs/DATA_MODEL.md`,
+`docs/INTEGRATIONS.md`) — when code and docs disagree, fix the code or the doc in the
+same change; never let them drift | never claim a build, test run, or simulator
+verification unless terminal output shows it — on this box only `PulseCore/` and
+doc↔code consistency are verifiable | `project.yml` is the source of truth;
+`Pulse.xcodeproj` is generated, never hand-edited | scope discipline: no accounts, no
+cloud sync, no analytics, no onboarding beyond permission prompts — when in doubt, cut
+the feature, don't abstract it | views never import HealthKit/MusicKit/Spotify/
+CoreLocation directly; they depend on protocols from `Pulse/Services/` | docs and
+comments are plain sentences — no marketing tone, no filler, no "This class represents
+a class that…"
+
+## Commands (macOS, from repo root)
+
+```
+xcodegen generate
+xcodebuild -project Pulse.xcodeproj -scheme Pulse -destination 'platform=iOS Simulator,name=iPhone 17' build
+```
+
+Domain tests — any OS with a Swift 6+ toolchain, including this Linux box (`~/swift`):
+
+```
+cd PulseCore && swift test
+```
 
 ## Toolchain (verified 2026-08-19)
 
@@ -27,38 +52,46 @@ notes, music per workout). Local-first, no backend, single user (the owner's iPh
 | Dependencies | None yet | Spotify iOS SDK added later via SPM (see `docs/INTEGRATIONS.md`); keep it the only one |
 | Linux verification | Swift 6.3 toolchain (`~/swift`) | `PulseCore/` is platform-free SwiftPM; `swift test` there runs on this box. Only `PulseCore/` is Linux-buildable — anything importing SwiftUI/SwiftData/HealthKit/MusicKit/CoreLocation is macOS/Xcode-only |
 
-Build commands (run on macOS, from repo root):
+## Conventions
 
-```
-xcodegen generate
-xcodebuild -project Pulse.xcodeproj -scheme Pulse -destination 'platform=iOS Simulator,name=iPhone 17' build
-```
+Types `UpperCamelCase`, meaning-first (`WorkoutSession`, not `SessionManager`) |
+formatting: 4-space indent, 100-col soft limit, `swift-format` default style otherwise |
+charts: Swift Charts only — no chart libraries | views in `Pulse/Features/<Feature>/`,
+`@Model` classes in `Pulse/Domain/Models/`, pure logic in `Pulse/Domain/` or `PulseCore/`
+| tests: Swift Testing (`import Testing`) — pure domain logic lives in `PulseCore/` with
+its tests (Linux-verifiable); platform-bound tests (views, services) get a `PulseTests`
+target back in xcodegen when they exist (none yet)
 
-Domain tests (any OS with a Swift 6+ toolchain, including this Linux box):
+## Concurrency
 
-```
-cd PulseCore && swift test
-```
+UI is `@MainActor`. Services are `actor` or `final class` with async methods.
+async/await only — no Combine, no callbacks where `await` works. Swift 6 strict
+concurrency is enabled; keep types `Sendable`-clean rather than silencing diagnostics.
 
-## Code conventions
+## PulseCore
 
-- **SwiftUI + SwiftData.** Views in `Pulse/Features/<Feature>/`, SwiftData `@Model` classes in
-  `Pulse/Domain/Models/`, pure logic in `Pulse/Domain/`. Services (HealthKit, Spotify, Apple
-  Music) behind protocols in `Pulse/Services/` — views never import HealthKit/MusicKit/Spotify
-  directly.
-- **Concurrency:** UI is `@MainActor`. Services are `actor` or `final class` with async methods.
-  No Combine, no callbacks where `async/await` works.
-- **Charts:** Swift Charts only. No chart libraries.
-- **Formatting:** 4-space indent, 100-col soft limit, `swift-format` default style otherwise.
-- **Naming:** types `UpperCamelCase`, meaning-first (`WorkoutSession`, not `SessionManager`).
-- **Tests:** Swift Testing (`import Testing`). Pure domain logic lives in `PulseCore/` with its
-  tests (Linux-verifiable). Platform-bound tests (views, services) get an `PulseTests` target
-  back in xcodegen when they exist.
+Platform-free: pure Foundation, imports nothing Apple. Anything needing
+SwiftUI/SwiftData/HealthKit/MusicKit/CoreLocation belongs in `Pulse/`. The app target
+compiles `PulseCore/Sources/PulseCore` directly (see `sources:` in `project.yml`) —
+there is exactly one copy of the domain sources; never duplicate it into `Pulse/`.
+
+## Permissions & Info.plist
+
+All usage strings, the HealthKit entitlement, and the Spotify URL scheme
+(`pulse-spotify` + `LSApplicationQueriesSchemes`) live in `project.yml` (Info.plist
+properties + entitlements); `Pulse/Info.plist` is generated from them. Adding or
+changing a permission = edit `project.yml`, regenerate, update `docs/INTEGRATIONS.md`
+in the same change.
+
+## Git
+
+Local-only repo on `master`, no remote. Plain commits; no push or PR workflow.
 
 ## Workflow phases (agreed with owner)
 
-1. **Ground layer** — docs + skeleton (this state).
-2. **Audit / validate / verify** — check docs↔code↔permissions consistency, then build+test on macOS.
+1. **Ground layer** — docs + skeleton (complete; see `README.md` status).
+2. **Audit / validate / verify** — check docs↔code↔permissions consistency, then
+   build+test on macOS.
 3. **Build** — feature-by-feature in MVP order defined in `docs/PRODUCT.md`.
 
 Definition of done for any feature: builds, tests pass, HealthKit/Music permission flows
@@ -77,3 +110,9 @@ project.yml          xcodegen spec (source of truth for the Xcode project)
 Pulse/               app sources (platform-bound: SwiftUI/SwiftData/HealthKit/…)
 PulseCore/           platform-free SwiftPM package: domain logic + tests (Linux-verifiable)
 ```
+
+## Autoimprovement
+
+Suggest new rules here when owner feedback or a recurring mistake generalizes | when a
+feature lands, update the `README.md` status and the relevant doc in the same change |
+re-verify the toolchain table when Xcode/iOS/Swift versions move, and re-date it.

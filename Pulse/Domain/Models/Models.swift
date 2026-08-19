@@ -113,3 +113,23 @@ final class Goal {
 enum GoalKind: String, Codable, CaseIterable {
     case weeklyWorkouts, bodyWeight, oneRepMax
 }
+
+extension Workout {
+    /// Sum of reps × weight across logged sets (stored kg).
+    var volumeKg: Double {
+        sets.reduce(0) { $0 + FitnessMath.volume(reps: $1.reps, weightKg: $1.weightKg) }
+    }
+
+    /// Flattened to PulseCore records for the pure aggregation functions.
+    func records() -> [SetRecord] {
+        sets.map { set in
+            SetRecord(
+                date: startedAt,
+                exerciseName: set.exercise?.name ?? "",
+                muscleGroup: set.exercise?.muscleGroup ?? "",
+                reps: set.reps,
+                weightKg: set.weightKg
+            )
+        }
+    }
+}

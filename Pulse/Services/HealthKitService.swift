@@ -4,9 +4,12 @@ import HealthKit
 /// The only surface views may use for HealthKit access.
 protocol HealthReading: AnyObject {
     func requestAuthorization() async -> Bool
+    func isAuthorized() async -> Bool
     func latestBodyMassKg() async -> Double?
+    func earliestBodyMassKg() async -> Double?
     func heightMeters() async -> Double?
     func heartRateStats(start: Date, end: Date) async -> HeartRateStats?
+    func progressSeries(start: Date, end: Date) async -> ProgressSeries
     func saveWorkout(start: Date, end: Date, activeEnergyKcal: Double) async throws
 }
 
@@ -15,21 +18,25 @@ struct HeartRateStats: Equatable {
     var peakBPM: Double
 }
 
+/// Weekly-average trend series used by the Progress tab.
+struct ProgressSeries: Sendable {
+    var weightKg: [DatedValue]
+    var restingHeartRate: [DatedValue]
+    var heartRateVariability: [DatedValue]
+}
+
 final class HealthKitService: HealthReading {
     private let store = HKHealthStore()
 
-    static let readTypes: Set<HKObjectType> = {
-        let q = HKQuantityType.self
-        return Set([
-            q(.heartRate),
-            q(.restingHeartRate),
-            q(.heartRateVariabilitySDNN),
-            q(.activeEnergyBurned),
-            q(.bodyMass),
-            q(.height),
-            q(.appleExerciseTime),
-        ])
-    }()
+    static let readTypes: Set<HKObjectType> = Set([
+        HKQuantityType(.heartRate),
+        HKQuantityType(.restingHeartRate),
+        HKQuantityType(.heartRateVariabilitySDNN),
+        HKQuantityType(.activeEnergyBurned),
+        HKQuantityType(.bodyMass),
+        HKQuantityType(.height),
+        HKQuantityType(.appleExerciseTime),
+    ])
 
     func requestAuthorization() async -> Bool {
         guard HKHealthStore.isHealthDataAvailable() else { return false }
@@ -45,12 +52,21 @@ final class HealthKitService: HealthReading {
         }
     }
 
+    /// True once the user has granted the write side (workouts/energy).
+    func isAuthorized() async -> Bool {
+        store.authorizationStatus(for: HKObjectType.workoutType()) == .sharingAuthorized
+    }
+
     func latestBodyMassKg() async -> Double? {
-        await latestQuantity(.bodyMass, unit: .gramUnit(with: .kilo))
+        await latestQuantity(.bodyMass, unit: .gramUnit(with: .kilo), ascending: false)
+    }
+
+    func earliestBodyMassKg() async -> Double? {
+        await latestQuantity(.bodyMass, unit: .gramUnit(with: .kilo), ascending: true)
     }
 
     func heightMeters() async -> Double? {
-        await latestQuantity(.height, unit: .meter())
+        await latestQuantity(.height, unit: .meter(), ascending: false)
     }
 
     func heartRateStats(start: Date, end: Date) async -> HeartRateStats? {
@@ -62,6 +78,45 @@ final class HealthKitService: HealthReading {
             let peak = sample.maximumQuantity()?.doubleValue(for: unit)
         else { return nil }
         return HeartRateStats(averageBPM: avg, peakBPM: peak)
+    }
+
+    /// Weekly average of a quantity type over a range — the trend series for Progress.
+    private func weeklyAverages(
+        _ identifier: HKQuantityTypeIdentifier, unit: HKUnit, start: Date, end: Date
+    ) async -> [DatedValue] {
+        let predicate = HKSamplePredicate.quantitySample(type: HKQuantityType(identifier))
+        let descriptor = HKStatisticsCollectionQueryDescriptor(
+            predicate: predicate,
+            options: .discreteAverage,
+            anchorDate: Calendar.current.startOfDay(for: start),
+            intervalComponents: DateComponents(weekOfYear: 1)
+        )
+        guard let collection = try? await descriptor.results(for: store) else { return [] }
+        var series: [DatedValue] = []
+        collection.enumerateStatistics(from: start, to: end) { stats, _ in
+            if let avg = stats.averageQuantity()?.doubleValue(for: unit) {
+                series.append(DatedValue(date: stats.startDate, value: avg))
+            }
+        }
+        return series
+    }
+
+    /// All Progress-tab series in one call; unit construction stays in the service.
+    func progressSeries(start: Date, end: Date) async -> ProgressSeries {
+        async let weight = weeklyAverages(
+            .bodyMass, unit: .gramUnit(with: .kilo), start: start, end: end
+        )
+        async let resting = weeklyAverages(
+            .restingHeartRate, unit: HKUnit.count().unitDivided(by: .minute()),
+            start: start, end: end
+        )
+        async let hrv = weeklyAverages(
+            .heartRateVariabilitySDNN, unit: HKUnit.secondUnit(with: .milli),
+            start: start, end: end
+        )
+        return await ProgressSeries(
+            weightKg: weight, restingHeartRate: resting, heartRateVariability: hrv
+        )
     }
 
     func saveWorkout(start: Date, end: Date, activeEnergyKcal: Double) async throws {
@@ -78,18 +133,26 @@ final class HealthKitService: HealthReading {
 
     // MARK: - Private
 
-    private func latestQuantity(_ identifier: HKQuantityTypeIdentifier, unit: HKUnit) async -> Double? {
+    private func latestQuantity(
+        _ identifier: HKQuantityTypeIdentifier, unit: HKUnit, ascending: Bool
+    ) async -> Double? {
         let type = HKQuantityType(identifier)
-        let descriptor = HKSamplePredicate.quantitySample(type: type)
-        let query = HKSampleQueryDescriptor(predicates: [descriptor], sortDescriptors: [SortDescriptor(\.endDate, order: .reverse)]) { _, _ in }
-        guard let sample = try? await query.result(on: store).first else { return nil }
+        let descriptor = HKSampleQueryDescriptor(
+            predicates: [.quantitySample(type: type)],
+            sortDescriptors: [SortDescriptor(\.endDate, order: ascending ? .forward : .reverse)]
+        )
+        guard let sample = try? await descriptor.result(on: store).first else { return nil }
         return sample.quantity.doubleValue(for: unit)
     }
 
     private func statistics(for type: HKQuantityType, from start: Date, to end: Date) async -> HKStatistics? {
         await withCheckedContinuation { continuation in
             let predicate = HKQuery.predicateForSamples(withStart: start, end: end)
-            let query = HKStatisticsQuery(quantityType: type, quantitySamplePredicate: predicate, options: [.discreteAverage, .discreteMaximum]) { _, stats, _ in
+            let query = HKStatisticsQuery(
+                quantityType: type,
+                quantitySamplePredicate: predicate,
+                options: [.discreteAverage, .discreteMaximum]
+            ) { _, stats, _ in
                 continuation.resume(returning: stats)
             }
             store.execute(query)

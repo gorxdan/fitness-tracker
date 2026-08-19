@@ -21,10 +21,9 @@ protocol MusicControlling: AnyObject {
     func isAvailable(_ provider: MusicProvider) async -> Bool
     func fetchPlaylists(_ provider: MusicProvider) async throws -> [PlaylistRef]
     func play(_ playlist: PlaylistRef) async throws
-    func pause()
+    func pause() async
 }
 
-/// RootTabView owns one instance; build phase wires real services into it.
 final class MusicController: MusicControlling {
     private let spotify = SpotifyService()
     private let appleMusic = AppleMusicService()
@@ -34,6 +33,11 @@ final class MusicController: MusicControlling {
         case .spotify: await spotify.isAvailable()
         case .appleMusic: await appleMusic.isAvailable()
         }
+    }
+
+    /// True when Apple Music is authorized without prompting.
+    var isAppleMusicAuthorized: Bool {
+        appleMusic.isAuthorized
     }
 
     func fetchPlaylists(_ provider: MusicProvider) async throws -> [PlaylistRef] {
@@ -50,8 +54,8 @@ final class MusicController: MusicControlling {
         }
     }
 
-    func pause() {
-        Task { try? await spotify.pause() }
-        Task { try? await appleMusic.pause() }
+    func pause() async {
+        try? await appleMusic.pause()
+        try? await spotify.pause()
     }
 }

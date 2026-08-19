@@ -1,22 +1,39 @@
 import Foundation
 import MusicKit
 
-/// Apple Music integration via MusicKit. Playlist picker + playback arrive in the build phase.
+/// Apple Music via MusicKit. Spotify stays a stub until the SDK is added on macOS
+/// (see docs/INTEGRATIONS.md) — the controller treats both identically.
 final class AppleMusicService {
+    var isAuthorized: Bool {
+        MusicAuthorization.status == .authorized
+    }
+
+    /// Requests permission if not yet determined; returns availability.
     func isAvailable() async -> Bool {
-        let status = await MusicAuthorization.request()
-        return status == .authorized
+        if isAuthorized { return true }
+        return await MusicAuthorization.request() == .authorized
     }
 
     func fetchPlaylists() async throws -> [PlaylistRef] {
-        throw MusicError.notImplemented
+        let request = MusicLibraryRequest<Playlist>()
+        let response = try await request.response()
+        return response.items.map {
+            PlaylistRef(id: $0.id.rawValue, name: $0.name, provider: .appleMusic)
+        }
     }
 
     func play(_ playlist: PlaylistRef) async throws {
-        throw MusicError.notImplemented
+        var request = MusicLibraryRequest<Playlist>()
+        request.filter(matching: \.id, memberOf: [MusicItemID(playlist.id)])
+        guard let found = try await request.response().items.first else {
+            throw MusicError.notAvailable
+        }
+        let player = ApplicationMusicPlayer.shared
+        player.queue = ApplicationMusicPlayer.Queue(for: found)
+        try await player.play()
     }
 
     func pause() async throws {
-        throw MusicError.notImplemented
+        ApplicationMusicPlayer.shared.pause()
     }
 }
