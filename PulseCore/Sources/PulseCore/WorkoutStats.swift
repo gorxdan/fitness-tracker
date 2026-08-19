@@ -53,7 +53,7 @@ public enum StatRange: String, CaseIterable, Sendable {
         }
     }
 
-    public func intervalEnding(now: Date = .now) -> DateInterval {
+    public func intervalEnding(now: Date = Date()) -> DateInterval {
         switch self {
         case .all: DateInterval(start: .distantPast, end: now)
         case .oneMonth: DateInterval(start: now.addingTimeInterval(-30 * 86_400), end: now)
@@ -109,14 +109,14 @@ public enum WorkoutStats {
     }
 
     /// Workouts logged in the current week.
-    public static func workoutsThisWeek(dates: [Date], now: Date = .now, calendar: Calendar = .current) -> Int {
+    public static func workoutsThisWeek(dates: [Date], now: Date = Date(), calendar: Calendar = .current) -> Int {
         guard let week = calendar.dateInterval(of: .weekOfYear, for: now) else { return 0 }
         return dates.filter { week.contains($0) }.count
     }
 
     /// Consecutive weeks (ending this week) containing at least one workout.
     /// A gap week ends the streak; this week counts if a workout is already logged.
-    public static func weeklyStreak(dates: [Date], now: Date = .now, calendar: Calendar = .current) -> Int {
+    public static func weeklyStreak(dates: [Date], now: Date = Date(), calendar: Calendar = .current) -> Int {
         let days = Set(dates.map { calendar.startOfDay(for: $0) })
         guard var cursor = calendar.dateInterval(of: .weekOfYear, for: now)?.start else { return 0 }
         var streak = 0

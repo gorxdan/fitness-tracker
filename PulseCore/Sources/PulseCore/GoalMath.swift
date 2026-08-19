@@ -21,7 +21,7 @@ public struct GoalSnapshot: Sendable, Hashable, Identifiable {
 public enum GoalMath {
     public static func weeklyWorkouts(
         goalID: String, target: Int, workoutDates: [Date],
-        now: Date = .now, calendar: Calendar = .current
+        now: Date = Date(), calendar: Calendar = .current
     ) -> GoalSnapshot {
         let done = WorkoutStats.workoutsThisWeek(dates: workoutDates, now: now, calendar: calendar)
         return GoalSnapshot(
