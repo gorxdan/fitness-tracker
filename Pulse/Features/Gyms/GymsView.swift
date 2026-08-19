@@ -160,7 +160,7 @@ struct GymEditorView: View {
         locating = true
         defer { locating = false }
         let status = await services.location.requestWhenInUse()
-        guard status.isPermitted else {
+        guard services.location.access.isPermitted else {
             locationMessage = "Location permission needed — enable it in Settings."
             return
         }

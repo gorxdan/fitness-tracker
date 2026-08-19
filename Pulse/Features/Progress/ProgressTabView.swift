@@ -27,7 +27,7 @@ struct ProgressTabView: View {
     @State private var heightM: Double?
     @State private var loadingHealth = true
 
-    private var records: [SetRecord] { workouts.flatMap(\.records) }
+    private var records: [SetRecord] { workouts.flatMap { $0.records() } }
     private var rangeInterval: DateInterval {
         let full = range.intervalEnding()
         return DateInterval(
@@ -43,7 +43,7 @@ struct ProgressTabView: View {
         NavigationStack {
             List {
                 Picker("Range", selection: $range) {
-                    ForEach(StatRange.allCases) { Text($0.label).tag($0) }
+                    ForEach(StatRange.allCases, id: \.self) { Text($0.label).tag($0) }
                 }
                 .pickerStyle(.segmented)
                 .listRowBackground(Color.clear)
@@ -67,7 +67,7 @@ struct ProgressTabView: View {
             }
             .safeAreaInset(edge: .bottom) {
                 Picker("Chart", selection: $tab) {
-                    ForEach(ChartTab.allCases) { Text($0.rawValue).tag($0) }
+                    ForEach(ChartTab.allCases, id: \.self) { Text($0.rawValue).tag($0) }
                 }
                 .pickerStyle(.segmented)
                 .padding(.horizontal)

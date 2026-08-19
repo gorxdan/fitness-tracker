@@ -84,24 +84,32 @@ final class HealthKitService: HealthReading {
     }
 
     /// Weekly average of a quantity type over a range — the trend series for Progress.
+    /// The modern async collection API yields HKStatistics as an AsyncSequence.
     private func weeklyAverages(
         _ identifier: HKQuantityTypeIdentifier, unit: HKUnit, start: Date, end: Date
     ) async -> [DatedValue] {
-        let predicate = HKSamplePredicate.quantitySample(type: HKQuantityType(identifier))
+        let dateRange = HKQuery.predicateForSamples(withStart: start, end: end)
+        let predicate = HKSamplePredicate.quantitySample(
+            type: HKQuantityType(identifier), predicate: dateRange
+        )
         let descriptor = HKStatisticsCollectionQueryDescriptor(
             predicate: predicate,
-            options: .discreteAverage,
+            options: .average,
             anchorDate: Calendar.current.startOfDay(for: start),
             intervalComponents: DateComponents(weekOfYear: 1)
         )
-        guard let collection = try? await descriptor.results(for: store) else { return [] }
-        var series: [DatedValue] = []
-        collection.enumerateStatistics(from: start, to: end) { stats, _ in
-            if let avg = stats.averageQuantity()?.doubleValue(for: unit) {
-                series.append(DatedValue(date: stats.startDate, value: avg))
+        do {
+            let results = try await descriptor.results(for: store)
+            var series: [DatedValue] = []
+            for try await stats in results {
+                if let avg = stats.averageQuantity()?.doubleValue(for: unit) {
+                    series.append(DatedValue(date: stats.startDate, value: avg))
+                }
             }
+            return series
+        } catch {
+            return []
         }
-        return series
     }
 
     /// All Progress-tab series in one call; unit construction stays in the service.
@@ -144,7 +152,7 @@ final class HealthKitService: HealthReading {
             predicates: [.quantitySample(type: type)],
             sortDescriptors: [SortDescriptor(\.endDate, order: ascending ? .forward : .reverse)]
         )
-        guard let sample = try? await descriptor.result(on: store).first else { return nil }
+        guard let sample = try? await descriptor.result(for: store).first else { return nil }
         return sample.quantity.doubleValue(for: unit)
     }
 
@@ -154,7 +162,7 @@ final class HealthKitService: HealthReading {
             let query = HKStatisticsQuery(
                 quantityType: type,
                 quantitySamplePredicate: predicate,
-                options: [.discreteAverage, .discreteMaximum]
+                options: [.average, .maximum]
             ) { _, stats, _ in
                 continuation.resume(returning: stats)
             }
