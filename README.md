@@ -4,12 +4,12 @@ Personal fitness tracker for iOS. Workouts, goals, body metrics, per-workout not
 (feel/pain), music per workout (Spotify / Apple Music), HealthKit integration including
 AirPods Pro 3 heart rate.
 
-**Status: MVP feature build complete in code.** All seven `docs/PRODUCT.md` features are
-implemented; verified on Linux by unit tests (17/17 in `PulseCore`) and `swiftc -parse`
-over every app source. Not yet verified: compilation in Xcode, simulator/device behavior,
-HealthKit and MusicKit permission flows, and playback — those need a Mac (`xcodegen
-generate`, then build + run the Pulse scheme). Spotify playback is stubbed until the iOS
-SDK is added on macOS (see `docs/INTEGRATIONS.md`).
+**Status: MVP built and compiling.** Verified: full app builds under Xcode on GitHub's
+`macos-26` runner (CI green on every push — generate, unsigned simulator build, PulseCore
+tests) and 17/17 domain unit tests pass on Linux. Not yet verified: running the app
+(simulator/device), HealthKit and MusicKit permission flows at runtime, playback, and
+geofence arrival — those need a Mac with Xcode or a device. Spotify playback is stubbed
+until the iOS SDK is added (see `docs/INTEGRATIONS.md`).
 
 ## Build (macOS only)
 
