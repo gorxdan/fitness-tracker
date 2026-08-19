@@ -26,13 +26,16 @@ final class AppleMusicService {
     func play(_ playlist: PlaylistRef) async throws {
         var request = MusicLibraryRequest<Playlist>()
         request.filter(matching: \.id, memberOf: [MusicItemID(playlist.id)])
-        guard var found = try await request.response().items.first else {
+        guard let found = try await request.response().items.first else {
             throw MusicError.notAvailable
         }
         // Playlists aren't playable items themselves — queue their tracks.
-        found = try await found.with([.tracks])
+        let loaded = try await found.with([.tracks])
+        guard let tracks = loaded.tracks, !tracks.isEmpty else {
+            throw MusicError.notAvailable
+        }
         let player = ApplicationMusicPlayer.shared
-        player.queue = ApplicationMusicPlayer.Queue(for: found.tracks)
+        player.queue = ApplicationMusicPlayer.Queue(for: tracks)
         try await player.play()
     }
 

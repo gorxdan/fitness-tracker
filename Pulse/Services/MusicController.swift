@@ -17,6 +17,7 @@ enum MusicError: Error {
 }
 
 /// One abstraction over both providers; views never know which is backing it.
+@MainActor
 protocol MusicControlling: AnyObject {
     func isAvailable(_ provider: MusicProvider) async -> Bool
     func fetchPlaylists(_ provider: MusicProvider) async throws -> [PlaylistRef]

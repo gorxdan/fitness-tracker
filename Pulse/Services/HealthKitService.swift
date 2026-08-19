@@ -1,7 +1,9 @@
 import Foundation
 import HealthKit
 
-/// The only surface views may use for HealthKit access.
+/// The only surface views may use for HealthKit access. MainActor: services are
+/// UI-driven and called from views; HealthKit calls are async internally.
+@MainActor
 protocol HealthReading: AnyObject {
     func requestAuthorization() async -> Bool
     func isAuthorized() async -> Bool
@@ -25,6 +27,7 @@ struct ProgressSeries: Sendable {
     var heartRateVariability: [DatedValue]
 }
 
+@MainActor
 final class HealthKitService: HealthReading {
     private let store = HKHealthStore()
 
