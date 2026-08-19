@@ -65,9 +65,6 @@ struct ProgressTabView: View {
                     }
                 }
             }
-            .navigationDestination(for: Workout.self) { workout in
-                WorkoutDetailView(workout: workout)
-            }
             .safeAreaInset(edge: .bottom) {
                 Picker("Chart", selection: $tab) {
                     ForEach(ChartTab.allCases) { Text($0.rawValue).tag($0) }

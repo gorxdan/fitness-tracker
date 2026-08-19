@@ -9,7 +9,7 @@ final class GoalSupport {
     private static var loaded = false
 
     static func snapshots(goals: [Goal], workouts: [Workout], health: HealthReading) -> [GoalSnapshot] {
-        let records = workouts.flatMap(\.records)
+        let records = workouts.flatMap { $0.records() }
         let dates = workouts.map(\.startedAt)
         return goals.map { goal in
             switch GoalKind(rawValue: goal.kind) ?? .weeklyWorkouts {

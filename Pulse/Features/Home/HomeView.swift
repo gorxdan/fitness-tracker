@@ -9,9 +9,10 @@ struct HomeView: View {
     @AppStorage("weightUnit") private var weightUnit = WeightUnit.kilograms
 
     private var workoutDates: [Date] { workouts.map(\.startedAt) }
-    private var allRecords: [SetRecord] { workouts.flatMap(\.records) }
+    private var allRecords: [SetRecord] { workouts.flatMap { $0.records() } }
     private var thisWeekVolume: Double {
-        let week = Calendar.current.dateInterval(of: .weekOfYear, for: .now) ?? .now...(.now)
+        let week = Calendar.current.dateInterval(of: .weekOfYear, for: .now)
+            ?? DateInterval(start: .now, end: .now)
         return FitnessMath.totalVolume(
             allRecords
                 .filter { week.contains($0.date) }
