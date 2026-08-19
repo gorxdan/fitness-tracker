@@ -101,7 +101,8 @@ final class HealthKitService: HealthReading {
         do {
             let results = try await descriptor.results(for: store)
             var series: [DatedValue] = []
-            for try await stats in results {
+            for try await element in results {
+                guard case .statistics(let stats) = element else { continue }
                 if let avg = stats.averageQuantity()?.doubleValue(for: unit) {
                     series.append(DatedValue(date: stats.startDate, value: avg))
                 }
