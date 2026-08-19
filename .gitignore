@@ -1,0 +1,16 @@
+# Generated
+*.xcodeproj
+xcuserdata/
+DerivedData/
+build/
+
+# macOS
+.DS_Store
+
+# Swift Package Manager
+.build/
+Package.resolved
+
+# Xcode
+*.xcuserstate
+*.xcscmblueprint

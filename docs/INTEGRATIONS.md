@@ -1,0 +1,50 @@
+# Integrations
+
+## HealthKit
+
+- Capability: HealthKit; `Info.plist` keys: `NSHealthShareUsageDescription` (read),
+  `NSHealthUpdateUsageDescription` (write workouts/energy). Exact strings in `project.yml`.
+- Request **all** read types + workout write at first launch, once; Settings shows grant status
+  and a re-prompt hint. Do not gate the app on the grant — workouts log fine without HealthKit.
+- AirPods Pro 3 heart rate needs **no direct integration**: the sensor writes to HealthKit and
+  Pulse reads `.heartRate` like any other source. Per-workout HR = anchored query over
+  `startedAt…endedAt`, avg + peak.
+- Simulator verification: Health app has sample data; for device pass, one real workout with
+  AirPods Pro 3 worn.
+
+## Apple Music (MusicKit)
+
+- No capability toggles; requires `NSAppleMusicUsageDescription` ("Media & Apple Music" usage).
+- Permission: `MusicAuthorization.request()` at first playlist pick, not at launch.
+- Playlist pick: user library query via `MusicCatalogSearchRequest`/library request — wrap in
+  `AppleMusicService`; playback via `ApplicationMusicPlayer` (no app switch needed).
+- Developer Program membership ($99/yr) required for catalog API — note in Settings if
+  unauthorized; playback of user's own library still works with standard signing.
+
+## Spotify
+
+- SDK: `https://github.com/spotify/ios-sdk` via SPM (add to `project.yml` when the music
+  feature starts; kept out of the skeleton so generation stays dependency-free).
+- Developer dashboard app: redirect URI `pulse-spotify://callback`, URL scheme
+  `pulse-spotify` registered in `project.yml`; `LSApplicationQueriesSchemes: [spotify]` to
+  detect the installed app.
+- Scopes: `playlist-read-private`, `app-remote-control` (playback), `user-read-email` minimal.
+- Token exchange: SDK's recommended pattern is a small token-swap endpoint; for personal use,
+  PKCE on-device is acceptable and avoids running a server. Decision deferred to the music
+  build; documented here so it isn't re-litigated in code review.
+- Failure mode: Spotify app not installed / token expired → banner "Open Spotify and try again",
+  workout continues unaffected.
+
+## Personal-build distribution
+
+Free provisioning is enough to install on the owner's iPhone, **but** HealthKit requires a
+proper App ID with the capability — free accounts allow it with 7-day re-sign cadence. If that
+gets old, one paid Developer Program membership solves it. No App Store review involved.
+
+## Permission strings (single source of truth)
+
+```
+NSHealthShareUsageDescription      Pulse reads your heart rate, workouts, weight and height to show progress.
+NSHealthUpdateUsageDescription     Pulse saves the workouts you log to Health.
+NSAppleMusicUsageDescription       Pulse links playlists from your Apple Music library to workouts.
+```

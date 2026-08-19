@@ -1,0 +1,44 @@
+name: Pulse
+options:
+  bundleIdPrefix: com.dan
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+targets:
+  Pulse:
+    type: application
+    platform: iOS
+    sources:
+      - Pulse
+    info:
+      path: Pulse/Info.plist
+      properties:
+        CFBundleDisplayName: Pulse
+        CFBundleShortVersionString: "0.1.0"
+        CFBundleVersion: "1"
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        NSHealthShareUsageDescription: Pulse reads your heart rate, workouts, weight and height to show progress.
+        NSHealthUpdateUsageDescription: Pulse saves the workouts you log to Health.
+        NSAppleMusicUsageDescription: Pulse links playlists from your Apple Music library to workouts.
+        LSApplicationQueriesSchemes:
+          - spotify
+        CFBundleURLTypes:
+          - CFBundleURLName: com.dan.Pulse.spotify
+            CFBundleURLSchemes:
+              - pulse-spotify
+    entitlements:
+      path: Pulse/Pulse.entitlements
+      properties:
+        com.apple.developer.healthkit: true
+  PulseTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - PulseTests
+    dependencies:
+      - target: Pulse
