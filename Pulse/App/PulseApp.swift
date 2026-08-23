@@ -13,6 +13,8 @@ struct PulseApp: App {
                 .environment(services)
                 .environment(appState)
         }
-        .modelContainer(for: [Workout.self, SetEntry.self, Exercise.self, Goal.self, GymLocation.self])
+        .modelContainer(
+            for: [Workout.self, SetEntry.self, Exercise.self, Goal.self, GymLocation.self]
+        )
     }
 }

@@ -22,7 +22,17 @@ struct WorkoutSummaryView: View {
     @State private var bodyMassKg: Double?
     @State private var saving = false
 
+    /// When Finish was tapped. Notes can take minutes to write; the recorded
+    /// duration, HR window, and HealthKit end stop here, not at Save.
+    @State private var sessionEnd: Date
+
     private let painLabels = ["None", "Mild", "Moderate", "Severe"]
+
+    init(model: SessionModel, fallbackTitle: String?) {
+        self.model = model
+        self.fallbackTitle = fallbackTitle
+        _sessionEnd = State(initialValue: Date.now)
+    }
 
     var body: some View {
         NavigationStack {
@@ -31,7 +41,7 @@ struct WorkoutSummaryView: View {
                     TextField("Title", text: $title)
                     LabeledContent("Duration") {
                         Text(
-                            Duration.seconds(Date.now.timeIntervalSince(model.startedAt)),
+                            Duration.seconds(sessionEnd.timeIntervalSince(model.startedAt)),
                             format: .units(allowed: [.hours, .minutes], width: .narrow)
                         )
                     }
@@ -43,7 +53,9 @@ struct WorkoutSummaryView: View {
 
                 Section("Heart rate") {
                     if let hrStats {
-                        LabeledContent("Average") { Text("\(Int(hrStats.averageBPM.rounded())) bpm") }
+                        LabeledContent("Average") {
+                            Text("\(Int(hrStats.averageBPM.rounded())) bpm")
+                        }
                         LabeledContent("Peak") { Text("\(Int(hrStats.peakBPM.rounded())) bpm") }
                     } else {
                         Label("No heart-rate data for this session", systemImage: "heart.slash")
@@ -115,7 +127,7 @@ struct WorkoutSummaryView: View {
 
     private func loadHealthData() async {
         hrStats = await services.health.heartRateStats(
-            start: model.startedAt, end: .now
+            start: model.startedAt, end: sessionEnd
         )
         bodyMassKg = await services.health.latestBodyMassKg()
     }
@@ -123,7 +135,7 @@ struct WorkoutSummaryView: View {
     private func save() async {
         saving = true
         defer { saving = false }
-        let end = Date.now
+        let end = sessionEnd
 
         let playlist = model.playlist
         let workout = Workout(

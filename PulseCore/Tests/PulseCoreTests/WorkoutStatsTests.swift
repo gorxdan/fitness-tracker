@@ -8,9 +8,13 @@ import Foundation
     let monday = date(2026, 8, 10, calendar: calendar)
     let saturday = date(2026, 8, 15, calendar: calendar)
     let sets = [
-        SetRecord(date: monday, exerciseName: "Bench", muscleGroup: "chest", reps: 10, weightKg: 60),
+        SetRecord(
+            date: monday, exerciseName: "Bench", muscleGroup: "chest", reps: 10, weightKg: 60
+        ),
         SetRecord(date: monday, exerciseName: "Row", muscleGroup: "back", reps: 10, weightKg: 50),
-        SetRecord(date: saturday, exerciseName: "Squat", muscleGroup: "legs", reps: 5, weightKg: 100),
+        SetRecord(
+            date: saturday, exerciseName: "Squat", muscleGroup: "legs", reps: 5, weightKg: 100
+        ),
     ]
     let range = DateInterval(start: monday, end: saturday.addingTimeInterval(86_400))
     let points = WorkoutStats.weeklyVolume(sets, in: range, calendar: calendar)
@@ -29,10 +33,17 @@ import Foundation
     let inRange = date(2026, 8, 10, calendar: calendar)
     let tooOld = date(2026, 5, 1, calendar: calendar)
     let sets = [
-        SetRecord(date: inRange, exerciseName: "Bench", muscleGroup: "chest", reps: 10, weightKg: 60),
-        SetRecord(date: tooOld, exerciseName: "Bench", muscleGroup: "chest", reps: 10, weightKg: 60),
+        SetRecord(
+            date: inRange, exerciseName: "Bench", muscleGroup: "chest", reps: 10, weightKg: 60
+        ),
+        SetRecord(
+            date: tooOld, exerciseName: "Bench", muscleGroup: "chest", reps: 10, weightKg: 60
+        ),
     ]
-    let range = DateInterval(start: inRange.addingTimeInterval(-86_400 * 3), end: inRange.addingTimeInterval(86_400))
+    let range = DateInterval(
+        start: inRange.addingTimeInterval(-86_400 * 3),
+        end: inRange.addingTimeInterval(86_400)
+    )
     #expect(WorkoutStats.weeklyVolume(sets, in: range, calendar: calendar).count == 1)
 }
 
@@ -42,13 +53,17 @@ import Foundation
     let day2 = date(2026, 8, 12, calendar: calendar)
     let sets = [
         SetRecord(date: day1, exerciseName: "Bench", muscleGroup: "chest", reps: 8, weightKg: 80),
-        SetRecord(date: day1.addingTimeInterval(3_600), exerciseName: "Bench", muscleGroup: "chest", reps: 5, weightKg: 85),
+        SetRecord(
+            date: day1.addingTimeInterval(3_600),
+            exerciseName: "Bench", muscleGroup: "chest", reps: 5, weightKg: 85
+        ),
         SetRecord(date: day2, exerciseName: "Bench", muscleGroup: "chest", reps: 3, weightKg: 90),
         SetRecord(date: day2, exerciseName: "Squat", muscleGroup: "legs", reps: 5, weightKg: 140),
     ]
     let series = WorkoutStats.oneRepMaxSeries(exerciseName: "Bench", in: sets, calendar: calendar)
     #expect(series.count == 2)
-    // Day 1 best: 85 × (1 + 5/30) = 99.17, not 80 × (1 + 8/30) = 101.33? 80×1.2667 = 101.33 — that IS higher.
+    // Day 1 best: 85 × (1 + 5/30) = 99.17, not 80 × (1 + 8/30) = 101.33?
+    // 80×1.2667 = 101.33 — that IS higher.
     #expect(abs(series[0].value - 101.33) < 0.01)
     // Day 2: 90 × 1.1 = 99
     #expect(abs(series[1].value - 99.0) < 0.01)
@@ -58,9 +73,17 @@ import Foundation
     let calendar = Calendar(identifier: .iso8601)
     let morning = date(2026, 8, 10, calendar: calendar)
     let sets = [
-        SetRecord(date: morning, exerciseName: "Bench", muscleGroup: "chest", reps: 5, weightKg: 60),
-        SetRecord(date: morning.addingTimeInterval(7_200), exerciseName: "Row", muscleGroup: "back", reps: 5, weightKg: 50),
-        SetRecord(date: date(2026, 8, 12, calendar: calendar), exerciseName: "Squat", muscleGroup: "legs", reps: 5, weightKg: 100),
+        SetRecord(
+            date: morning, exerciseName: "Bench", muscleGroup: "chest", reps: 5, weightKg: 60
+        ),
+        SetRecord(
+            date: morning.addingTimeInterval(7_200),
+            exerciseName: "Row", muscleGroup: "back", reps: 5, weightKg: 50
+        ),
+        SetRecord(
+            date: date(2026, 8, 12, calendar: calendar),
+            exerciseName: "Squat", muscleGroup: "legs", reps: 5, weightKg: 100
+        ),
     ]
     #expect(WorkoutStats.workoutDays(sets, calendar: calendar).count == 2)
 }

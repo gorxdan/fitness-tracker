@@ -9,7 +9,9 @@ public struct GoalSnapshot: Sendable, Hashable, Identifiable {
     /// 0...1, clamped. Progress > 1 means the target is beaten.
     public var progress: Double
 
-    public init(id: String, title: String, currentText: String, targetText: String, progress: Double) {
+    public init(
+        id: String, title: String, currentText: String, targetText: String, progress: Double
+    ) {
         self.id = id
         self.title = title
         self.currentText = currentText

@@ -104,7 +104,9 @@ struct WorkoutSessionView: View {
                     Text(model.startedAt, style: .timer)
                         .font(.title3.weight(.semibold).monospacedDigit())
                     Text(
-                        "\(model.doneSetCount) sets · \(Int(weightUnit.fromKg(model.totalVolumeKg).rounded())) \(weightUnit.label)"
+                        "\(model.doneSetCount) sets · "
+                            + "\(Int(weightUnit.fromKg(model.totalVolumeKg).rounded()))"
+                            + " \(weightUnit.label)"
                     )
                     .font(.subheadline)
                     .foregroundStyle(.secondary)

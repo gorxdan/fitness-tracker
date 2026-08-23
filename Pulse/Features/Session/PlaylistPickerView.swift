@@ -76,11 +76,13 @@ struct PlaylistPickerView: View {
         do {
             playlists = try await services.music.fetchPlaylists(provider)
             if playlists.isEmpty {
-                statusText = "No playlists found in \(provider == .appleMusic ? "Apple Music" : "Spotify")."
+                let source = provider == .appleMusic ? "Apple Music" : "Spotify"
+                statusText = "No playlists found in \(source)."
             }
         } catch {
             if provider == .spotify {
-                statusText = "Spotify connects in the Mac build phase — playlists from Apple Music work today."
+                statusText = "Spotify connects in the Mac build phase"
+                    + " — playlists from Apple Music work today."
             } else {
                 statusText = "Apple Music isn't authorized. Connect it in Settings first."
             }

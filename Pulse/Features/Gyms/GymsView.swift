@@ -15,7 +15,9 @@ struct GymsView: View {
                 ContentUnavailableView(
                     "No gyms saved",
                     systemImage: "mappin.and.ellipse",
-                    description: Text("Save a gym to get an offer to start your workout on arrival.")
+                    description: Text(
+                        "Save a gym to get an offer to start your workout on arrival."
+                    )
                 )
                 .listRowBackground(Color.clear)
             } else {
@@ -125,8 +127,12 @@ struct GymEditorView: View {
                 if latitude != 0 || longitude != 0 {
                     Section("Map") {
                         Map {
-                            Marker(name.isEmpty ? "Gym" : name,
-                                   coordinate: CLLocationCoordinate2D(latitude: latitude, longitude: longitude))
+                            Marker(
+                                name.isEmpty ? "Gym" : name,
+                                coordinate: CLLocationCoordinate2D(
+                                    latitude: latitude, longitude: longitude
+                                )
+                            )
                         }
                         .frame(height: 180)
                         .listRowInsets(EdgeInsets(top: 4, leading: 4, bottom: 4, trailing: 4))

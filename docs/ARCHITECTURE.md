@@ -36,8 +36,8 @@ Rules:
 - **Domain is dependency-free.** Pure logic lives in `PulseCore/` (Linux-verifiable);
   `Pulse/Domain/Models/` holds only SwiftData `@Model` classes.
 - **One SwiftData container** in `PulseApp`, injected via `.modelContainer` and `@Environment`.
-- **Music is one abstraction.** `MusicController` exposes `play(workout:)`, `pause()`,
-  `currentTrack` and is backed by `SpotifyService` or `AppleMusicService` depending on the
+- **Music is one abstraction.** `MusicController` exposes `fetchPlaylists(_:)`, `play(_:)`,
+  `pause()` and is backed by `SpotifyService` or `AppleMusicService` depending on the
   playlist's provider. Views don't know which.
 
 ## HealthKit data flow

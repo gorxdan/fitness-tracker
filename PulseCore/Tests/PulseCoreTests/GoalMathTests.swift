@@ -6,7 +6,9 @@ import Foundation
     let calendar = Calendar(identifier: .iso8601)
     let now = date(2026, 8, 19, calendar: calendar)
     let dates = [date(2026, 8, 17, calendar: calendar), date(2026, 8, 18, calendar: calendar)]
-    let snap = GoalMath.weeklyWorkouts(goalID: "g1", target: 4, workoutDates: dates, now: now, calendar: calendar)
+    let snap = GoalMath.weeklyWorkouts(
+        goalID: "g1", target: 4, workoutDates: dates, now: now, calendar: calendar
+    )
     #expect(snap.currentText == "2")
     #expect(snap.targetText == "of 4")
     #expect(abs(snap.progress - 0.5) < 0.001)
@@ -36,8 +38,14 @@ import Foundation
 @Test func oneRepMaxGoalUsesBestEstimate() {
     let calendar = Calendar(identifier: .iso8601)
     let sets = [
-        SetRecord(date: date(2026, 8, 10, calendar: calendar), exerciseName: "Bench", muscleGroup: "chest", reps: 5, weightKg: 85),
-        SetRecord(date: date(2026, 8, 12, calendar: calendar), exerciseName: "Bench", muscleGroup: "chest", reps: 3, weightKg: 90),
+        SetRecord(
+            date: date(2026, 8, 10, calendar: calendar),
+            exerciseName: "Bench", muscleGroup: "chest", reps: 5, weightKg: 85
+        ),
+        SetRecord(
+            date: date(2026, 8, 12, calendar: calendar),
+            exerciseName: "Bench", muscleGroup: "chest", reps: 3, weightKg: 90
+        ),
     ]
     let snap = GoalMath.oneRepMax(goalID: "g3", targetKg: 110, exerciseName: "Bench", sets: sets)
     // Best e1RM = 85 × (1 + 5/30) = 99.17 (beats 90 × (1 + 3/30) = 99.0)

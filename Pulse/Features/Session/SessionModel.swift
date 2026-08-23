@@ -95,7 +95,8 @@ final class SessionModel {
     }
 
     func setOptional(
-        _ setID: UUID, _ slotID: UUID, _ keyPath: WritableKeyPath<SetDraft, Double?>, _ value: Double
+        _ setID: UUID, _ slotID: UUID,
+        _ keyPath: WritableKeyPath<SetDraft, Double?>, _ value: Double
     ) {
         mutateSet(setID, slotID) { $0[keyPath: keyPath] = value }
     }

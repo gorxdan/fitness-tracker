@@ -72,7 +72,10 @@ struct WorkoutDetailView: View {
                             Spacer()
                             if group.exercise.isCardio {
                                 Text("\(set.reps) min") +
-                                Text(set.distanceKm.map { " · \(String(format: "%.1f", $0)) km" } ?? "")
+                                Text(
+                                    set.distanceKm
+                                        .map { " · \(String(format: "%.1f", $0)) km" } ?? ""
+                                )
                             } else {
                                 Text("\(set.reps) × \(weightUnit.format(kg: set.weightKg))")
                             }

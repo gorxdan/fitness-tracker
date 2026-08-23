@@ -8,7 +8,9 @@ public struct SetRecord: Sendable, Hashable {
     public var reps: Int
     public var weightKg: Double
 
-    public init(date: Date, exerciseName: String, muscleGroup: String, reps: Int, weightKg: Double) {
+    public init(
+        date: Date, exerciseName: String, muscleGroup: String, reps: Int, weightKg: Double
+    ) {
         self.date = date
         self.exerciseName = exerciseName
         self.muscleGroup = muscleGroup
@@ -109,21 +111,27 @@ public enum WorkoutStats {
     }
 
     /// Workouts logged in the current week.
-    public static func workoutsThisWeek(dates: [Date], now: Date = Date(), calendar: Calendar = .current) -> Int {
+    public static func workoutsThisWeek(
+        dates: [Date], now: Date = Date(), calendar: Calendar = .current
+    ) -> Int {
         guard let week = calendar.dateInterval(of: .weekOfYear, for: now) else { return 0 }
         return dates.filter { week.contains($0) }.count
     }
 
     /// Consecutive weeks (ending this week) containing at least one workout.
     /// A gap week ends the streak; this week counts if a workout is already logged.
-    public static func weeklyStreak(dates: [Date], now: Date = Date(), calendar: Calendar = .current) -> Int {
+    public static func weeklyStreak(
+        dates: [Date], now: Date = Date(), calendar: Calendar = .current
+    ) -> Int {
         let days = Set(dates.map { calendar.startOfDay(for: $0) })
         guard var cursor = calendar.dateInterval(of: .weekOfYear, for: now)?.start else { return 0 }
         var streak = 0
         // This week only counts once something is logged; previous weeks must all be non-empty.
         if weekHasWorkout(weekStart: cursor, days: days, calendar: calendar) { streak += 1 }
         while true {
-            guard let previous = calendar.date(byAdding: .weekOfYear, value: -1, to: cursor) else { break }
+            guard let previous = calendar.date(
+                byAdding: .weekOfYear, value: -1, to: cursor
+            ) else { break }
             if weekHasWorkout(weekStart: previous, days: days, calendar: calendar) {
                 streak += 1
                 cursor = previous
@@ -134,8 +142,12 @@ public enum WorkoutStats {
         return streak
     }
 
-    private static func weekHasWorkout(weekStart: Date, days: Set<Date>, calendar: Calendar) -> Bool {
-        guard let week = calendar.dateInterval(of: .weekOfYear, for: weekStart) else { return false }
+    private static func weekHasWorkout(
+        weekStart: Date, days: Set<Date>, calendar: Calendar
+    ) -> Bool {
+        guard let week = calendar.dateInterval(
+            of: .weekOfYear, for: weekStart
+        ) else { return false }
         return days.contains { week.contains($0) }
     }
 }

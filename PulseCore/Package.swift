@@ -12,6 +12,8 @@ let package = Package(
     ],
     targets: [
         .target(name: "PulseCore", path: "Sources/PulseCore"),
-        .testTarget(name: "PulseCoreTests", dependencies: ["PulseCore"], path: "Tests/PulseCoreTests"),
+        .testTarget(
+            name: "PulseCoreTests", dependencies: ["PulseCore"], path: "Tests/PulseCoreTests"
+        ),
     ]
 )

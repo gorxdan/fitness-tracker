@@ -17,7 +17,8 @@ extension LocationAccess {
         case .always:
             "Always access active — arrival prompts work even when Pulse is closed."
         case .whenInUse:
-            "When-In-Use active. For arrival prompts while the app is closed, allow Always in Settings."
+            "When-In-Use active. For arrival prompts while the app is closed, "
+            + "allow Always in Settings."
         case .denied:
             "Location access is off; turn it on in Settings to use arrival prompts."
         }
@@ -180,7 +181,9 @@ final class LocationService: NSObject, CLLocationManagerDelegate {
         Task { @MainActor in self.resolveAuth() }
     }
 
-    nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+    nonisolated func locationManager(
+        _ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]
+    ) {
         guard let location = locations.last else { return }
         Task { @MainActor in self.resolveLocation(location) }
     }
@@ -189,7 +192,9 @@ final class LocationService: NSObject, CLLocationManagerDelegate {
         Task { @MainActor in self.failLocation(error) }
     }
 
-    nonisolated func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
+    nonisolated func locationManager(
+        _ manager: CLLocationManager, didEnterRegion region: CLRegion
+    ) {
         let identifier = region.identifier
         Task { @MainActor in self.handleArrival(regionID: identifier) }
     }

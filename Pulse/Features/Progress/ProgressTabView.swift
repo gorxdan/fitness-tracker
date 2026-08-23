@@ -181,7 +181,10 @@ struct ProgressTabView: View {
             if let mass = latestMassKg, let height = heightM {
                 let bmi = FitnessMath.bmi(massKg: mass, heightM: height)
                 LabeledContent("BMI") {
-                    Text("\(String(format: "%.1f", bmi)) · \(FitnessMath.bmiCategory(for: bmi).label)")
+                    Text(
+                        "\(String(format: "%.1f", bmi))"
+                            + " · \(FitnessMath.bmiCategory(for: bmi).label)"
+                    )
                 }
             } else {
                 LabeledContent("BMI") { Text("Needs height + weight in Health") }

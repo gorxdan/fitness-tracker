@@ -8,11 +8,21 @@ struct SettingsView: View {
     @State private var healthConnected: Bool?
     @State private var appleMusicConnected = false
 
+    /// "Checking…" while the status query runs, so the button never shows
+    /// "Connect Health" for an already-granted app.
+    private var healthButtonTitle: String {
+        switch healthConnected {
+        case .some(true): "Health connected"
+        case .some(false): "Connect Health"
+        case nil: "Checking Health…"
+        }
+    }
+
     var body: some View {
         NavigationStack {
             List {
                 Section("Health") {
-                    Button(healthConnected == true ? "Health connected" : "Connect Health") {
+                    Button(healthButtonTitle) {
                         Task {
                             _ = await services.health.requestAuthorization()
                             healthConnected = await services.health.isAuthorized()

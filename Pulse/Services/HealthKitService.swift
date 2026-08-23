@@ -167,17 +167,15 @@ final class HealthKitService: HealthReading {
         return sample.quantity.doubleValue(for: unit)
     }
 
-    private func statistics(for type: HKQuantityType, from start: Date, to end: Date) async -> HKStatistics? {
-        await withCheckedContinuation { continuation in
-            let predicate = HKQuery.predicateForSamples(withStart: start, end: end)
-            let query = HKStatisticsQuery(
-                quantityType: type,
-                quantitySamplePredicate: predicate,
-                options: [.discreteAverage, .discreteMax]
-            ) { _, stats, _ in
-                continuation.resume(returning: stats)
-            }
-            store.execute(query)
-        }
+    private func statistics(
+        for type: HKQuantityType, from start: Date, to end: Date
+    ) async -> HKStatistics? {
+        let predicate = HKQuery.predicateForSamples(withStart: start, end: end)
+        let descriptor = HKStatisticsQueryDescriptor(
+            quantityType: type,
+            quantitySamplePredicate: predicate,
+            options: [.discreteAverage, .discreteMax]
+        )
+        return try? await descriptor.result(for: store)
     }
 }

@@ -101,7 +101,10 @@ final class Goal {
     var exercise: Exercise?
     var createdAt: Date
 
-    init(id: UUID = UUID(), kind: GoalKind, targetValue: Double, exercise: Exercise? = nil, createdAt: Date = .now) {
+    init(
+        id: UUID = UUID(), kind: GoalKind, targetValue: Double,
+        exercise: Exercise? = nil, createdAt: Date = .now
+    ) {
         self.id = id
         self.kind = kind.rawValue
         self.targetValue = targetValue
