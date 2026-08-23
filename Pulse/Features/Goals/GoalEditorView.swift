@@ -11,8 +11,17 @@ struct GoalEditorView: View {
 
     @State private var kind: GoalKind = .weeklyWorkouts
     @State private var targetCount = 3
-    @State private var targetKg = 80.0
+    @State private var targetKg: Double
     @State private var exercise: Exercise?
+
+    /// Default target expressed in the user's display unit (80 kg ≈ 176.4 lb),
+    /// not a bare 80 that reads as 80 lb for pound users.
+    init() {
+        let unit = WeightUnit(
+            rawValue: UserDefaults.standard.string(forKey: "weightUnit") ?? ""
+        ) ?? .kilograms
+        _targetKg = State(initialValue: unit.fromKg(80))
+    }
 
     private var strengthExercises: [Exercise] {
         exercises.filter { !$0.isCardio }

@@ -33,7 +33,8 @@ public enum GoalMath {
         )
     }
 
-    /// Body-weight goal: progress is movement from the first recorded weight toward the target.
+    /// Body-weight goal: progress is movement from the goal's baseline weight
+    /// (first sample recorded at or after goal creation) toward the target.
     public static func bodyWeight(
         goalID: String, targetKg: Double, startKg: Double?, latestKg: Double?
     ) -> GoalSnapshot {

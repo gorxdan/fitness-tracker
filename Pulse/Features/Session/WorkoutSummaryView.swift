@@ -141,8 +141,10 @@ struct WorkoutSummaryView: View {
         modelContext.insert(workout)
 
         for slot in model.slots {
-            for (index, draft) in slot.sets.enumerated() {
-                guard draft.isDone else { continue }
+            // Renumber at save time so skipped drafts don't leave "Set 1, Set 3"
+            // gaps in the detail view.
+            var index = 0
+            for draft in slot.sets where draft.isDone {
                 let entry = SetEntry(
                     index: index,
                     reps: draft.reps,
@@ -152,17 +154,21 @@ struct WorkoutSummaryView: View {
                 )
                 entry.workout = workout
                 modelContext.insert(entry)
+                index += 1
             }
         }
         try? modelContext.save()
 
-        // Rough energy estimate: ~5 MET strength training × body mass (80 kg assumed
-        // without Health data). kcal/min ≈ 0.0175 × MET × kg.
+        // Rough energy estimate × body mass (80 kg assumed without Health data).
+        // kcal/min ≈ 0.0175 × MET × kg; MET 5 for strength, 7 for sustained cardio.
+        let cardioOnly = !model.slots.isEmpty && model.slots.allSatisfy(\.exercise.isCardio)
+        let met = cardioOnly ? 7.0 : 5.0
         let massKg = bodyMassKg ?? 80
         let minutes = end.timeIntervalSince(model.startedAt) / 60
-        let kcal = minutes * 0.0175 * 5 * massKg
+        let kcal = minutes * 0.0175 * met * massKg
         try? await services.health.saveWorkout(
-            start: model.startedAt, end: end, activeEnergyKcal: kcal
+            start: model.startedAt, end: end, activeEnergyKcal: kcal,
+            activityType: cardioOnly ? .mixedCardio : .traditionalStrengthTraining
         )
 
         await services.music.pause()

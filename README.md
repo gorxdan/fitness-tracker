@@ -41,7 +41,7 @@ Alternative free option: Codemagic, 500 Mac minutes/month for personal accounts.
 - Xcode project spec (`project.yml`, xcodegen) with HealthKit entitlement + all permission strings
 - SwiftData models: Exercise, Workout, SetEntry, Goal, GymLocation
 - `PulseCore/` domain logic (BMI, Epley 1RM, volume, weekly buckets, streaks, goal math,
-  units, 34-exercise seed catalog) — 17 unit tests, all passing on Linux
+  units, 35-exercise seed catalog) — 17 unit tests, all passing on Linux
 - Workout session flow: exercise picker, reps × weight / cardio set logging, one-tap
   repeat-last-set, elapsed timer, finish summary (feel 1–5, pain level + location, notes),
   per-session heart-rate stats, save back to Apple Health

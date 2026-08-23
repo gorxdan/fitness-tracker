@@ -64,11 +64,28 @@ final class LocationService: NSObject, CLLocationManagerDelegate {
 
     /// Prompts for When-In-Use if undetermined; returns the resulting status.
     func requestWhenInUse() async -> CLAuthorizationStatus {
-        if manager.authorizationStatus == .notDetermined {
-            await withCheckedContinuation { continuation in
-                authContinuation = continuation
-                manager.requestWhenInUseAuthorization()
-            }
+        guard manager.authorizationStatus == .notDetermined else {
+            return manager.authorizationStatus
+        }
+        await withCheckedContinuation { continuation in
+            // A still-pending continuation would be dropped (its task hangs);
+            // settle it with the current status before storing the new one.
+            authContinuation?.resume(returning: manager.authorizationStatus)
+            authContinuation = continuation
+            manager.requestWhenInUseAuthorization()
+        }
+        return manager.authorizationStatus
+    }
+
+    /// One-tap upgrade shown in Settings ("notice arrival with the app closed").
+    func requestAlways() async -> CLAuthorizationStatus {
+        guard manager.authorizationStatus == .authorizedWhenInUse else {
+            return manager.authorizationStatus
+        }
+        await withCheckedContinuation { continuation in
+            authContinuation?.resume(returning: manager.authorizationStatus)
+            authContinuation = continuation
+            manager.requestAlwaysAuthorization()
         }
         return manager.authorizationStatus
     }
@@ -76,6 +93,7 @@ final class LocationService: NSObject, CLLocationManagerDelegate {
     /// One-shot fix, used by "use current location" when saving a gym.
     func currentLocation() async throws -> CLLocation {
         try await withCheckedThrowingContinuation { continuation in
+            locationContinuation?.resume(throwing: CancellationError())
             locationContinuation = continuation
             manager.requestLocation()
         }

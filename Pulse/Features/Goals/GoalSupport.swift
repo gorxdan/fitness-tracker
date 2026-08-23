@@ -7,7 +7,7 @@ enum GoalSupport {
     static func snapshots(
         goals: [Goal],
         workouts: [Workout],
-        bodyMassStart: Double?,
+        bodyMassStarts: [UUID: Double],
         bodyMassLatest: Double?
     ) -> [GoalSnapshot] {
         let records = workouts.flatMap { $0.records() }
@@ -24,7 +24,7 @@ enum GoalSupport {
                 GoalMath.bodyWeight(
                     goalID: goal.id.uuidString,
                     targetKg: goal.targetValue,
-                    startKg: bodyMassStart,
+                    startKg: bodyMassStarts[goal.id],
                     latestKg: bodyMassLatest
                 )
             case .oneRepMax:

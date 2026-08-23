@@ -1,13 +1,15 @@
 import Foundation
 
-/// Pure domain math. No platform imports; unit-tested in PulseTests.
-enum FitnessMath {
-    static func bmi(massKg: Double, heightM: Double) -> Double {
+/// Pure domain math. No platform imports; unit-tested in PulseCoreTests.
+/// Marked public so PulseCore also works consumed as a module, not only
+/// compiled file-by-file into the app target.
+public enum FitnessMath {
+    public static func bmi(massKg: Double, heightM: Double) -> Double {
         guard massKg > 0, heightM > 0 else { return 0 }
         return massKg / (heightM * heightM)
     }
 
-    static func bmiCategory(for value: Double) -> BMICategory {
+    public static func bmiCategory(for value: Double) -> BMICategory {
         switch value {
         case ..<18.5: .underweight
         case ..<25.0: .normal
@@ -17,24 +19,24 @@ enum FitnessMath {
     }
 
     /// Epley formula: weight × (1 + reps/30).
-    static func oneRepMax(weightKg: Double, reps: Int) -> Double {
+    public static func oneRepMax(weightKg: Double, reps: Int) -> Double {
         weightKg * (1 + Double(reps) / 30)
     }
 
-    static func volume(reps: Int, weightKg: Double) -> Double {
+    public static func volume(reps: Int, weightKg: Double) -> Double {
         Double(reps) * weightKg
     }
 
     /// Sum of reps × weight for all strength sets.
-    static func totalVolume(_ sets: [(reps: Int, weightKg: Double)]) -> Double {
+    public static func totalVolume(_ sets: [(reps: Int, weightKg: Double)]) -> Double {
         sets.reduce(0) { $0 + volume(reps: $1.reps, weightKg: $1.weightKg) }
     }
 }
 
-enum BMICategory: String {
+public enum BMICategory: String {
     case underweight, normal, overweight, obese
 
-    var label: String {
+    public var label: String {
         switch self {
         case .underweight: "Underweight"
         case .normal: "Normal"

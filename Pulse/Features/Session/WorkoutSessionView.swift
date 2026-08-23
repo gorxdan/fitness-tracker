@@ -11,6 +11,7 @@ struct WorkoutSessionView: View {
     @State private var pickingExercise = false
     @State private var pickingPlaylist = false
     @State private var confirmingFinish = false
+    @State private var confirmingEnd = false
     @State private var musicMessage: String?
 
     private let prefillTitle: String?
@@ -39,8 +40,14 @@ struct WorkoutSessionView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("End") { appState.sessionActive = false }
-                        .foregroundStyle(.secondary)
+                    Button("End") {
+                        if model.doneSetCount > 0 {
+                            confirmingEnd = true
+                        } else {
+                            appState.sessionActive = false
+                        }
+                    }
+                    .foregroundStyle(.secondary)
                 }
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     Button {
@@ -65,12 +72,25 @@ struct WorkoutSessionView: View {
                         Task { await startPlayback(playlist) }
                     } else {
                         model.playlist = nil
+                        musicMessage = nil
                         Task { await services.music.pause() }
                     }
                 }
             }
             .sheet(isPresented: $confirmingFinish) {
                 WorkoutSummaryView(model: model, fallbackTitle: prefillTitle)
+            }
+            .confirmationDialog(
+                "Discard this workout?",
+                isPresented: $confirmingEnd,
+                titleVisibility: .visible
+            ) {
+                Button("Discard Workout", role: .destructive) {
+                    appState.sessionActive = false
+                }
+                Button("Keep Logging", role: .cancel) {}
+            } message: {
+                Text("\(model.doneSetCount) logged sets will be lost.")
             }
         }
     }
@@ -192,7 +212,11 @@ struct WorkoutSessionView: View {
     ) -> Binding<Double> {
         Binding(
             get: { Double(model.setValue(setID, slotID, keyPath)) },
-            set: { model.setValue(setID, slotID, keyPath, Int($0)) }
+            set: { value in
+                // The decimal pad allows magnitudes Int(Double) would trap on.
+                let clamped = min(max(value.rounded(), 0), 1_000_000_000)
+                model.setValue(setID, slotID, keyPath, Int(clamped))
+            }
         )
     }
 

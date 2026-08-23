@@ -33,8 +33,8 @@ Rules:
 - **Views → view models → services.** Views never `import HealthKit`, `MusicKit`, or the Spotify
   SDK. All platform access sits behind protocols in `Services/` so previews and tests run with
   fakes.
-- **Domain is dependency-free.** `Domain/Logic/` contains pure functions only — unit-testable
-  without a simulator.
+- **Domain is dependency-free.** Pure logic lives in `PulseCore/` (Linux-verifiable);
+  `Pulse/Domain/Models/` holds only SwiftData `@Model` classes.
 - **One SwiftData container** in `PulseApp`, injected via `.modelContainer` and `@Environment`.
 - **Music is one abstraction.** `MusicController` exposes `play(workout:)`, `pause()`,
   `currentTrack` and is backed by `SpotifyService` or `AppleMusicService` depending on the
@@ -42,7 +42,8 @@ Rules:
 
 ## HealthKit data flow
 
-Read side: `HealthKitService.requestAuthorization()` once (Settings shows status);
+Read side: `HealthKitService.requestAuthorization()` fires once at first launch, then
+from Settings on demand (status row plus a link to the app's Health settings page);
 per-workout HR is a query over the session's time range — there is no live streaming in MVP.
 Write side: finishing a workout saves an `HKWorkout` + active energy so Apple Fitness rings
 reflect sessions logged in Pulse. BMI is computed on demand from height + latest body mass;

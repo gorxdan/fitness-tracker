@@ -3,6 +3,7 @@ import SwiftData
 
 struct SettingsView: View {
     @Environment(AppServices.self) private var services
+    @Environment(\.openURL) private var openURL
     @AppStorage("weightUnit") private var weightUnit = WeightUnit.kilograms
     @State private var healthConnected: Bool?
     @State private var appleMusicConnected = false
@@ -22,6 +23,10 @@ struct SettingsView: View {
                               systemImage: "info.circle")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
+                        Button("Open Health settings") {
+                            openURL(URL(string: "app-settings:")!)
+                        }
+                        .font(.footnote)
                     }
                 }
 
@@ -40,6 +45,11 @@ struct SettingsView: View {
 
                 Section("Location") {
                     NavigationLink("Gyms & arrival prompts") { GymsView() }
+                    if services.location.access == .whenInUse {
+                        Button("Allow Always for arrival prompts") {
+                            Task { _ = await services.location.requestAlways() }
+                        }
+                    }
                     Text(services.location.access.footerText)
                         .font(.footnote)
                         .foregroundStyle(.secondary)
@@ -55,7 +65,11 @@ struct SettingsView: View {
                 }
 
                 Section("About") {
-                    LabeledContent("Version", value: "0.1.0")
+                    LabeledContent(
+                        "Version",
+                        value: Bundle.main.infoDictionary?["CFBundleShortVersionString"]
+                            as? String ?? "—"
+                    )
                     LabeledContent("Target", value: "iOS 26.0")
                 }
             }

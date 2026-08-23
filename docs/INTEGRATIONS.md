@@ -5,7 +5,8 @@
 - Capability: HealthKit; `Info.plist` keys: `NSHealthShareUsageDescription` (read),
   `NSHealthUpdateUsageDescription` (write workouts/energy). Exact strings in `project.yml`.
 - Request **all** read types + workout write at first launch, once; Settings shows grant status
-  and a re-prompt hint. Do not gate the app on the grant — workouts log fine without HealthKit.
+  and an "Open Health settings" re-prompt link. Do not gate the app on the grant — workouts
+  log fine without HealthKit.
 - AirPods Pro 3 heart rate needs **no direct integration**: the sensor writes to HealthKit and
   Pulse reads `.heartRate` like any other source. Per-workout HR = anchored query over
   `startedAt…endedAt`, avg + peak.

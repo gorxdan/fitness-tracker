@@ -141,12 +141,19 @@ openssl pkcs12 -export -out "$WORK/dist.p12" \
   -inkey "$WORK/key.pem" -in "$WORK/cert.pem" \
   -passout pass:pulse -name "Pulse Distribution"
 echo "   created $CERT_ID -> dist.p12 (password: pulse)"
+echo "   note: Apple caps active distribution certificates; revoke superseded"
+echo "   ones in App Store Connect (Users and Access) when that cap is hit."
 
 # ---------- 4. Provisioning profile ----------
 echo "== Profile: $PROFILE_NAME"
 RESP=$(asc GET "/v1/profiles?filter%5Bname%5D=$(python3 -c "import urllib.parse;print(urllib.parse.quote('$PROFILE_NAME'))")&filter%5BprofileState%5D=ACTIVE")
-PROFILE_ID=$(jget "$RESP" "d['data'][0]['id'] if d.get('data') else ''")
-if [[ -z "$PROFILE_ID" ]]; then
+# Every run creates a fresh certificate+key (private keys are never recoverable
+# from ASC), so a profile left from a previous run references a certificate we
+# no longer hold, breaking codesign with the exported .p12. Recreate it.
+for STALE_ID in $(jget "$RESP" "' '.join(p['id'] for p in d.get('data', []))"); do
+  asc DELETE "/v1/profiles/$STALE_ID" >/dev/null && echo "   deleted stale profile $STALE_ID" || true
+done
+{
   RESP=$(asc POST /v1/profiles "{\"data\":{\"type\":\"profiles\",\"attributes\":{\"name\":\"$PROFILE_NAME\",\"profileType\":\"IOS_APP_STORE\"},\"relationships\":{\"bundleId\":{\"data\":{\"type\":\"bundleIds\",\"id\":\"$BID\"}},\"certificate\":{\"data\":{\"type\":\"certificates\",\"id\":\"$CERT_ID\"}}}}}")
   if jget "$RESP" "'errors' in d" | grep -q True; then
     echo "   profile creation failed:"
@@ -155,9 +162,7 @@ if [[ -z "$PROFILE_ID" ]]; then
   fi
   PROFILE_ID=$(jget "$RESP" "d['data']['id']")
   echo "   created $PROFILE_ID"
-else
-  echo "   exists $PROFILE_ID"
-fi
+}
 asc GET "/v1/profiles/$PROFILE_ID/profileContent" | python3 -c "import json,sys,base64; d=json.load(sys.stdin); sys.stdout.buffer.write(base64.b64decode(d['data']['attributes']['profileContent']))" > "$WORK/profile.mobileprovision"
 echo "   -> profile.mobileprovision"
 

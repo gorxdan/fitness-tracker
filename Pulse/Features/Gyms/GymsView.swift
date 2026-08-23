@@ -80,6 +80,14 @@ struct GymEditorView: View {
     @State private var locating = false
     @State private var locationMessage: String?
 
+    /// (0, 0) is the unset sentinel; range checks catch typos before
+    /// CLCircularRegion silently refuses to monitor the region.
+    private var coordinateValid: Bool {
+        (-90.0...90.0).contains(latitude)
+            && (-180.0...180.0).contains(longitude)
+            && !(latitude == 0 && longitude == 0)
+    }
+
     var body: some View {
         NavigationStack {
             Form {
@@ -130,7 +138,7 @@ struct GymEditorView: View {
             .toolbar {
                 Button("Cancel") { dismiss() }
                 Button("Save") { save() }
-                    .disabled(name.isEmpty || (latitude == 0 && longitude == 0))
+                    .disabled(name.isEmpty || !coordinateValid)
             }
         }
     }

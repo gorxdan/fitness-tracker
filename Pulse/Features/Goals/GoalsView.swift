@@ -32,14 +32,14 @@ struct GoalsView: View {
         .sheet(isPresented: $addingGoal) {
             GoalEditorView()
         }
-        .task { await services.loadBodyMass() }
+        .task { await services.loadBodyMass(goals: goals) }
     }
 
     private var snapshots: [GoalSnapshot] {
         GoalSupport.snapshots(
             goals: goals,
             workouts: workouts,
-            bodyMassStart: services.bodyMassStart,
+            bodyMassStarts: services.bodyMassStarts,
             bodyMassLatest: services.bodyMassLatest
         )
     }

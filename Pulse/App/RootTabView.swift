@@ -7,6 +7,7 @@ struct RootTabView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var gyms: [GymLocation]
     @State private var selectedTab = 0
+    @AppStorage("healthAuthorizationRequested") private var healthAuthRequested = false
 
     var body: some View {
         @Bindable var session = appState
@@ -25,26 +26,35 @@ struct RootTabView: View {
             WorkoutSessionView(prefillTitle: session.sessionPrefillTitle)
                 .interactiveDismissDisabled()
         }
-        .task { seedExercisesIfNeeded() }
+        .task {
+            seedExercisesIfNeeded()
+            requestHealthAuthorizationOnceIfNeeded()
+        }
         .task(id: gyms.count) {
             services.location.monitor(gyms: gyms.map(\.region))
         }
-        .onReceive(
-            NotificationCenter.default.publisher(for: .gymArrivalTapped)
-                .receive(on: RunLoop.main)
-        ) { notification in
-            if let gymName = notification.object as? String {
-                appState.handleArrival(gymName)
-                selectedTab = 0
+        .task {
+            // async/await instead of a Combine subscription (repo rule).
+            // Arrival taps are already posted on the main actor by the
+            // ArrivalNotificationDelegate, so no further hop is needed.
+            for await notification in NotificationCenter.default.notifications(
+                named: .gymArrivalTapped
+            ) {
+                if let gymName = notification.object as? String {
+                    appState.handleArrival(gymName)
+                    selectedTab = 0
+                }
             }
         }
     }
 
+    /// Idempotent by name collision (docs/DATA_MODEL.md): later catalog
+    /// additions seed into existing stores too, never duplicating rows.
     private func seedExercisesIfNeeded() {
-        let descriptor = FetchDescriptor<Exercise>()
-        let existing = (try? modelContext.fetchCount(descriptor)) ?? 0
-        guard existing == 0 else { return }
-        for entry in ExerciseCatalog.entries {
+        let existing = (try? modelContext.fetch(FetchDescriptor<Exercise>())) ?? []
+        let known = Set(existing.map(\.name))
+        var inserted = false
+        for entry in ExerciseCatalog.entries where !known.contains(entry.name) {
             modelContext.insert(
                 Exercise(
                     name: entry.name,
@@ -52,7 +62,16 @@ struct RootTabView: View {
                     isCardio: entry.cardio
                 )
             )
+            inserted = true
         }
-        try? modelContext.save()
+        if inserted { try? modelContext.save() }
+    }
+
+    /// Health permission is requested once at first launch (docs/INTEGRATIONS.md);
+    /// Settings keeps the status row and the re-prompt path afterwards.
+    private func requestHealthAuthorizationOnceIfNeeded() {
+        guard !healthAuthRequested else { return }
+        healthAuthRequested = true
+        Task { _ = await services.health.requestAuthorization() }
     }
 }

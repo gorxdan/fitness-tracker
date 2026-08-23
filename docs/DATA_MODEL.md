@@ -22,7 +22,7 @@ exercise/muscle group/workout.
 | `endedAt` | `Date?` | nil while session is live; set on finish |
 | `feelRating` | `Int?` | 1–5 (awful → great), nil = not set |
 | `painLevel` | `Int?` | 0 none, 1 mild, 2 moderate, 3 severe |
-| `painLocation` | `String` | free text, only meaningful when painLevel ≥ 1 |
+| `painLocation` | `String?` | free text, only meaningful when painLevel ≥ 1 |
 | `notes` | `String` | free-form |
 | `musicProvider` | `String?` | `spotify`, `appleMusic`, nil |
 | `musicPlaylistID` / `musicPlaylistName` | `String?` | provider-side identifiers |
@@ -32,15 +32,14 @@ exercise/muscle group/workout.
 | Field | Type | Notes |
 |---|---|---|
 | `id` | `UUID` | |
-| `workout` | `Workout` | inverse of `sets` |
-| `exercise` | `Exercise` | |
+| `workout` | `Workout?` | inverse of `sets`; optional relation |
+| `exercise` | `Exercise?` | optional relation; aggregation skips orphaned sets |
 | `index` | `Int` | ordering within (workout, exercise) |
 | `reps` | `Int` | |
 | `weightKg` | `Double` | kg internally; display converts to user unit |
 | `rpe` | `Double?` | optional rate of perceived exertion 1–10 |
 
-Cardio sets: `reps` = duration minutes, `weightKg` = 0, distance stored in `rpe`? **No** —
-add `distanceKm: Double?` to `SetEntry`. (Decision recorded here so it isn't improvised later.)
+Cardio sets: `reps` = duration minutes, `weightKg` = 0, `distanceKm` = distance (implemented).
 
 ### `Goal`
 | Field | Type | Notes |
@@ -51,7 +50,8 @@ add `distanceKm: Double?` to `SetEntry`. (Decision recorded here so it isn't imp
 | `exercise` | `Exercise?` | only for `oneRepMax` |
 | `createdAt` | `Date` | |
 
-Derived progress: weeklyWorkouts = count this week; bodyWeight = latest HealthKit mass;
+Derived progress: weeklyWorkouts = count this week; bodyWeight = latest HealthKit mass
+measured against the baseline at (or just after) goal creation (`GoalMath.bodyWeight`);
 oneRepMax = max Epley estimate for that exercise.
 
 ### `GymLocation`
@@ -82,10 +82,10 @@ Drives `CLCircularRegion` monitoring in `LocationService`; arrival → local not
 | `.activeEnergyBurned` | read/write | workout summary; written on finish |
 | `.bodyMass` | read | weight trend + BMI |
 | `.height` | read | BMI |
-| `.workoutType` (HKWorkout) | read/write | Apple Fitness workouts list; save on finish |
-| `.appleExerciseTime` | read | weekly workouts goal fallback |
+| `.workoutType` (HKWorkout) | write | saved on finish (`.traditionalStrengthTraining`, or `.mixedCardio` for cardio-only sessions); reading Apple Fitness workouts is a later feature |
 
 ## Seed data
 
-First launch seeds ~30 common exercises across the seven muscle groups, idempotently (check
-name collision before insert).
+Every launch seeds the 35-exercise catalog (`ExerciseCatalog`) idempotently: exercises
+whose names aren't already present are inserted, so later catalog additions reach
+existing stores without duplicating rows.

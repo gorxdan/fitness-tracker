@@ -8,11 +8,15 @@ protocol HealthReading: AnyObject {
     func requestAuthorization() async -> Bool
     func isAuthorized() async -> Bool
     func latestBodyMassKg() async -> Double?
-    func earliestBodyMassKg() async -> Double?
+    /// Baseline for body-weight goals: first mass at/after goal creation.
+    func bodyMassOnOrAfter(_ date: Date) async -> Double?
     func heightMeters() async -> Double?
     func heartRateStats(start: Date, end: Date) async -> HeartRateStats?
     func progressSeries(start: Date, end: Date) async -> ProgressSeries
-    func saveWorkout(start: Date, end: Date, activeEnergyKcal: Double) async throws
+    func saveWorkout(
+        start: Date, end: Date, activeEnergyKcal: Double,
+        activityType: HKWorkoutActivityType
+    ) async throws
 }
 
 struct HeartRateStats: Equatable {
@@ -38,7 +42,6 @@ final class HealthKitService: HealthReading {
         HKQuantityType(.activeEnergyBurned),
         HKQuantityType(.bodyMass),
         HKQuantityType(.height),
-        HKQuantityType(.appleExerciseTime),
     ])
 
     func requestAuthorization() async -> Bool {
@@ -61,15 +64,16 @@ final class HealthKitService: HealthReading {
     }
 
     func latestBodyMassKg() async -> Double? {
-        await latestQuantity(.bodyMass, unit: .gramUnit(with: .kilo), ascending: false)
+        await quantity(.bodyMass, unit: .gramUnit(with: .kilo), onOrAfter: nil, ascending: false)
     }
 
-    func earliestBodyMassKg() async -> Double? {
-        await latestQuantity(.bodyMass, unit: .gramUnit(with: .kilo), ascending: true)
+    /// Weight-goal baseline anchored at goal creation, not "earliest sample ever".
+    func bodyMassOnOrAfter(_ date: Date) async -> Double? {
+        await quantity(.bodyMass, unit: .gramUnit(with: .kilo), onOrAfter: date, ascending: true)
     }
 
     func heightMeters() async -> Double? {
-        await latestQuantity(.height, unit: .meter(), ascending: false)
+        await quantity(.height, unit: .meter(), onOrAfter: nil, ascending: false)
     }
 
     func heartRateStats(start: Date, end: Date) async -> HeartRateStats? {
@@ -131,8 +135,11 @@ final class HealthKitService: HealthReading {
         )
     }
 
-    func saveWorkout(start: Date, end: Date, activeEnergyKcal: Double) async throws {
-        let workout = HKWorkout(activityType: .traditionalStrengthTraining, start: start, end: end)
+    func saveWorkout(
+        start: Date, end: Date, activeEnergyKcal: Double,
+        activityType: HKWorkoutActivityType = .traditionalStrengthTraining
+    ) async throws {
+        let workout = HKWorkout(activityType: activityType, start: start, end: end)
         try await store.save(workout)
         let energy = HKQuantitySample(
             type: HKQuantityType(.activeEnergyBurned),
@@ -145,13 +152,16 @@ final class HealthKitService: HealthReading {
 
     // MARK: - Private
 
-    private func latestQuantity(
-        _ identifier: HKQuantityTypeIdentifier, unit: HKUnit, ascending: Bool
+    private func quantity(
+        _ identifier: HKQuantityTypeIdentifier, unit: HKUnit,
+        onOrAfter: Date?, ascending: Bool
     ) async -> Double? {
         let type = HKQuantityType(identifier)
+        let range = onOrAfter.map { HKQuery.predicateForSamples(withStart: $0, end: nil) }
         let descriptor = HKSampleQueryDescriptor(
-            predicates: [.quantitySample(type: type)],
-            sortDescriptors: [SortDescriptor(\.endDate, order: ascending ? .forward : .reverse)]
+            predicates: [.quantitySample(type: type, predicate: range)],
+            sortDescriptors: [SortDescriptor(\.endDate, order: ascending ? .forward : .reverse)],
+            limit: 1
         )
         guard let sample = try? await descriptor.result(for: store).first else { return nil }
         return sample.quantity.doubleValue(for: unit)
