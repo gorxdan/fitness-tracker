@@ -38,7 +38,7 @@ struct HomeView: View {
                 Button("Start Workout") { appState.startSession() }
                     .buttonStyle(.borderedProminent)
             }
-            .task { await GoalSupport.loadBodyMass(from: services.health) }
+            .task { await services.loadBodyMass() }
         }
     }
 
@@ -101,7 +101,12 @@ struct HomeView: View {
     }
 
     private var goalSnapshots: [GoalSnapshot] {
-        GoalSupport.snapshots(goals: goals, workouts: workouts, health: services.health)
+        GoalSupport.snapshots(
+            goals: goals,
+            workouts: workouts,
+            bodyMassStart: services.bodyMassStart,
+            bodyMassLatest: services.bodyMassLatest
+        )
     }
 
     private var greeting: String {

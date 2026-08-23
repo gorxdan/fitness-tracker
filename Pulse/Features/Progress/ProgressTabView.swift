@@ -30,10 +30,12 @@ struct ProgressTabView: View {
     private var records: [SetRecord] { workouts.flatMap { $0.records() } }
     private var rangeInterval: DateInterval {
         let full = range.intervalEnding()
-        return DateInterval(
-            start: workouts.last.map { min(full.start, $0.startedAt) } ?? full.start,
-            end: full.end
-        )
+        // Finite ranges are exact. For .all, bound the start at the oldest workout
+        // so Health queries anchor sanely instead of querying from distantPast.
+        if range == .all, let oldest = workouts.last?.startedAt, oldest > full.start {
+            return DateInterval(start: oldest, end: full.end)
+        }
+        return full
     }
     private var exercisesInRange: [String] {
         Set(records.filter { rangeInterval.contains($0.date) }.map(\.exerciseName)).sorted()
@@ -258,7 +260,10 @@ struct ProgressTabView: View {
         hrvSeries = loaded.heartRateVariability
         latestMassKg = await mass
         heightM = await height
-        if selectedExercise == nil {
+        // A range change can exclude the selected exercise — fall back to one present.
+        if let selected = selectedExercise, !exercisesInRange.contains(selected) {
+            selectedExercise = exercisesInRange.first
+        } else if selectedExercise == nil {
             selectedExercise = exercisesInRange.first
         }
     }

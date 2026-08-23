@@ -16,17 +16,10 @@ enum MusicError: Error {
     case notImplemented
 }
 
-/// One abstraction over both providers; views never know which is backing it.
+/// The music seam views use. Wraps both providers; views never know which
+/// is backing a playlist (see docs/ARCHITECTURE.md).
 @MainActor
-protocol MusicControlling: AnyObject {
-    func isAvailable(_ provider: MusicProvider) async -> Bool
-    func fetchPlaylists(_ provider: MusicProvider) async throws -> [PlaylistRef]
-    func play(_ playlist: PlaylistRef) async throws
-    func pause() async
-}
-
-@MainActor
-final class MusicController: MusicControlling {
+final class MusicController {
     private let spotify = SpotifyService()
     private let appleMusic = AppleMusicService()
 

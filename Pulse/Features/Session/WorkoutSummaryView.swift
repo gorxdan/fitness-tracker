@@ -8,6 +8,7 @@ struct WorkoutSummaryView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @AppStorage("weightUnit") private var weightUnit = WeightUnit.kilograms
 
     let model: SessionModel
     let fallbackTitle: String?
@@ -36,7 +37,7 @@ struct WorkoutSummaryView: View {
                     }
                     LabeledContent("Sets logged") { Text("\(model.doneSetCount)") }
                     LabeledContent("Volume") {
-                        Text("\(Int(model.totalVolumeKg.rounded())) kg")
+                        Text(weightUnit.format(kg: model.totalVolumeKg))
                     }
                 }
 
@@ -97,6 +98,7 @@ struct WorkoutSummaryView: View {
                     }
                 }
                 .buttonStyle(.borderedProminent)
+                .disabled(saving)
                 .padding()
             }
             .onAppear(perform: loadDefaults)

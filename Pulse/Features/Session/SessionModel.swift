@@ -22,7 +22,6 @@ final class SessionModel {
     var startedAt = Date()
     var slots: [Slot] = []
     var playlist: PlaylistRef?
-    var isPlaying = false
 
     var totalVolumeKg: Double {
         slots.flatMap(\.sets)
@@ -32,10 +31,6 @@ final class SessionModel {
 
     var doneSetCount: Int {
         slots.flatMap(\.sets).filter(\.isDone).count
-    }
-
-    var elapsedMinutes: Double {
-        Date.now.timeIntervalSince(startedAt) / 60
     }
 
     /// Title derived from the day's muscle groups, e.g. "Chest & Back"; cardio-only → "Cardio".

@@ -32,11 +32,16 @@ struct GoalsView: View {
         .sheet(isPresented: $addingGoal) {
             GoalEditorView()
         }
-        .task { await GoalSupport.loadBodyMass(from: services.health) }
+        .task { await services.loadBodyMass() }
     }
 
     private var snapshots: [GoalSnapshot] {
-        GoalSupport.snapshots(goals: goals, workouts: workouts, health: services.health)
+        GoalSupport.snapshots(
+            goals: goals,
+            workouts: workouts,
+            bodyMassStart: services.bodyMassStart,
+            bodyMassLatest: services.bodyMassLatest
+        )
     }
 
     private func delete(at offsets: IndexSet) {

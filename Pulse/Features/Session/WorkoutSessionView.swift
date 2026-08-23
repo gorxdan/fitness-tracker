@@ -6,6 +6,7 @@ struct WorkoutSessionView: View {
     @Environment(AppServices.self) private var services
     @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
+    @AppStorage("weightUnit") private var weightUnit = WeightUnit.kilograms
     @State private var model = SessionModel()
     @State private var pickingExercise = false
     @State private var pickingPlaylist = false
@@ -25,7 +26,6 @@ struct WorkoutSessionView: View {
                 ForEach(model.slots) { slot in
                     slotSection(slot)
                 }
-                .onDelete { _ in }
                 if model.slots.isEmpty {
                     ContentUnavailableView(
                         "No exercises yet",
@@ -83,9 +83,11 @@ struct WorkoutSessionView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(model.startedAt, style: .timer)
                         .font(.title3.weight(.semibold).monospacedDigit())
-                    Text("\(model.doneSetCount) sets · \(Int(model.totalVolumeKg.rounded())) kg")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                    Text(
+                        "\(model.doneSetCount) sets · \(Int(weightUnit.fromKg(model.totalVolumeKg).rounded())) \(weightUnit.label)"
+                    )
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                 }
                 Spacer()
                 playlistButton
@@ -215,10 +217,8 @@ struct WorkoutSessionView: View {
     private func startPlayback(_ playlist: PlaylistRef) async {
         do {
             try await services.music.play(playlist)
-            model.isPlaying = true
             musicMessage = nil
         } catch {
-            model.isPlaying = false
             musicMessage = playlist.provider == .spotify
                 ? "Spotify connects in the Mac build phase — playlist saved."
                 : "Couldn't start playback: \(playlist.name)"

@@ -41,6 +41,9 @@ struct GymRegion: Sendable {
 final class LocationService: NSObject, CLLocationManagerDelegate {
     private let manager = CLLocationManager()
     private var gymNames: [String: String] = [:] // region identifier → gym name
+    /// Gyms that should be monitored; armed when permission allows. Cached so a
+    /// late permission grant can arm regions saved before it existed.
+    private var pendingGyms: [GymRegion] = []
     private var authContinuation: CheckedContinuation<CLAuthorizationStatus, Never>?
     private var locationContinuation: CheckedContinuation<CLLocation, Error>?
 
@@ -79,8 +82,13 @@ final class LocationService: NSObject, CLLocationManagerDelegate {
     }
 
     /// Replaces all monitored regions with the given gyms (iOS caps monitored regions;
-    /// personal use stays well under the limit).
+    /// personal use stays well under the limit). Defers arming until permission exists.
     func monitor(gyms: [GymRegion]) {
+        pendingGyms = gyms
+        arm(gyms: gyms)
+    }
+
+    private func arm(gyms: [GymRegion]) {
         for region in manager.monitoredRegions {
             manager.stopMonitoring(for: region)
         }
@@ -123,6 +131,10 @@ final class LocationService: NSObject, CLLocationManagerDelegate {
         guard manager.authorizationStatus != .notDetermined else { return }
         authContinuation?.resume(returning: manager.authorizationStatus)
         authContinuation = nil
+        // Permission may have arrived after gyms were saved — arm them now.
+        if access.isPermitted, !pendingGyms.isEmpty {
+            arm(gyms: pendingGyms)
+        }
     }
 
     private func resolveLocation(_ location: CLLocation) {

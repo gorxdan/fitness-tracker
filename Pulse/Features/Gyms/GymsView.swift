@@ -97,6 +97,7 @@ struct GymEditorView: View {
                             Label("Use current location", systemImage: "location")
                         }
                     }
+                    .disabled(locating)
                     if let locationMessage {
                         Text(locationMessage)
                             .font(.footnote)

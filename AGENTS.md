@@ -24,7 +24,8 @@ doc↔code consistency are verifiable | `project.yml` is the source of truth;
 `Pulse.xcodeproj` is generated, never hand-edited | scope discipline: no accounts, no
 cloud sync, no analytics, no onboarding beyond permission prompts — when in doubt, cut
 the feature, don't abstract it | views never import HealthKit/MusicKit/Spotify/
-CoreLocation directly; they depend on protocols from `Pulse/Services/` | docs and
+CoreLocation directly; they go through `Pulse/Services/` — `HealthReading` protocol for
+Health, `MusicController` as the single seam over both music providers | docs and
 comments are plain sentences — no marketing tone, no filler, no "This class represents
 a class that…"
 

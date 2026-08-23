@@ -26,7 +26,4 @@ public enum WeightUnit: String, CaseIterable, Sendable {
         let text = String(format: "%.1f", value)
         return includeUnit ? "\(text) \(label)" : text
     }
-
-    /// Plate-friendly whole-number step for steppers/entry fields.
-    public var step: Double { self == .kilograms ? 2.5 : 5 }
 }

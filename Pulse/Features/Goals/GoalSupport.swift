@@ -1,14 +1,15 @@
-import SwiftUI
+import Foundation
 
-/// Maps SwiftData objects to the pure goal math in PulseCore.
-/// Body-weight goals need Health's first/latest mass — fetched once per app run.
-@MainActor
-final class GoalSupport {
-    private static var bodyMassStart: Double?
-    private static var bodyMassLatest: Double?
-    private static var loaded = false
-
-    static func snapshots(goals: [Goal], workouts: [Workout], health: HealthReading) -> [GoalSnapshot] {
+/// Pure mapping from SwiftData goals + workouts + Health body mass to the
+/// goal snapshots rendered by Home and Goals. No cached state — the
+/// observable values live on AppServices so loads refresh the views.
+enum GoalSupport {
+    static func snapshots(
+        goals: [Goal],
+        workouts: [Workout],
+        bodyMassStart: Double?,
+        bodyMassLatest: Double?
+    ) -> [GoalSnapshot] {
         let records = workouts.flatMap { $0.records() }
         let dates = workouts.map(\.startedAt)
         return goals.map { goal in
@@ -35,12 +36,5 @@ final class GoalSupport {
                 )
             }
         }
-    }
-
-    static func loadBodyMass(from health: HealthReading) async {
-        guard !loaded else { return }
-        loaded = true
-        bodyMassStart = await health.earliestBodyMassKg()
-        bodyMassLatest = await health.latestBodyMassKg()
     }
 }
