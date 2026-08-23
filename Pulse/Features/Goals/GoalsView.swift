@@ -1,5 +1,5 @@
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct GoalsView: View {
     @Query(sort: \Goal.createdAt) private var goals: [Goal]

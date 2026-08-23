@@ -1,4 +1,5 @@
 import Testing
+
 @testable import PulseCore
 
 @Test func bmiKnownValue() {

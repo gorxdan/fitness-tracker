@@ -50,7 +50,7 @@ public enum GoalMath {
                     let moved = abs(targetKg - latest)
                     progress = min(1, max(0, (total - moved) / total))
                 } else {
-                    progress = 1 // already at target when the goal was set
+                    progress = 1  // already at target when the goal was set
                 }
             }
         }

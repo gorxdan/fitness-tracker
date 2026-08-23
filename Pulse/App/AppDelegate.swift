@@ -28,7 +28,7 @@ final class ArrivalNotificationDelegate: NSObject, Sendable, UNUserNotificationC
         didReceive response: UNNotificationResponse
     ) async {
         guard response.notification.request.identifier.hasPrefix("gym-arrival"),
-              let gym = response.notification.request.content.userInfo["gym"] as? String
+            let gym = response.notification.request.content.userInfo["gym"] as? String
         else { return }
         await MainActor.run {
             NotificationCenter.default.post(name: .gymArrivalTapped, object: gym)

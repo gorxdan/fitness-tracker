@@ -78,7 +78,8 @@ public enum WorkoutStats {
             buckets[week, default: [:]][set.muscleGroup, default: 0] +=
                 FitnessMath.volume(reps: set.reps, weightKg: set.weightKg)
         }
-        return buckets
+        return
+            buckets
             .map { week, groups in
                 groups.map { VolumePoint(weekStart: week, muscleGroup: $0.key, volumeKg: $0.value) }
             }
@@ -99,7 +100,8 @@ public enum WorkoutStats {
             let e1rm = FitnessMath.oneRepMax(weightKg: set.weightKg, reps: set.reps)
             best[day] = max(best[day] ?? 0, e1rm)
         }
-        return best
+        return
+            best
             .map { DatedValue(date: $0.key, value: $0.value) }
             .sorted { $0.date < $1.date }
     }
@@ -129,9 +131,11 @@ public enum WorkoutStats {
         // This week only counts once something is logged; previous weeks must all be non-empty.
         if weekHasWorkout(weekStart: cursor, days: days, calendar: calendar) { streak += 1 }
         while true {
-            guard let previous = calendar.date(
-                byAdding: .weekOfYear, value: -1, to: cursor
-            ) else { break }
+            guard
+                let previous = calendar.date(
+                    byAdding: .weekOfYear, value: -1, to: cursor
+                )
+            else { break }
             if weekHasWorkout(weekStart: previous, days: days, calendar: calendar) {
                 streak += 1
                 cursor = previous
@@ -145,9 +149,11 @@ public enum WorkoutStats {
     private static func weekHasWorkout(
         weekStart: Date, days: Set<Date>, calendar: Calendar
     ) -> Bool {
-        guard let week = calendar.dateInterval(
-            of: .weekOfYear, for: weekStart
-        ) else { return false }
+        guard
+            let week = calendar.dateInterval(
+                of: .weekOfYear, for: weekStart
+            )
+        else { return false }
         return days.contains { week.contains($0) }
     }
 }

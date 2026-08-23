@@ -1,5 +1,5 @@
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct RootTabView: View {
     @Environment(AppServices.self) private var services

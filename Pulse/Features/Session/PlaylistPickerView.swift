@@ -40,9 +40,11 @@ struct PlaylistPickerView: View {
                             dismiss()
                         } label: {
                             HStack {
-                                Image(systemName: playlist.provider == .appleMusic
-                                    ? "music.note" : "music.note.list")
-                                    .foregroundStyle(.secondary)
+                                Image(
+                                    systemName: playlist.provider == .appleMusic
+                                        ? "music.note" : "music.note.list"
+                                )
+                                .foregroundStyle(.secondary)
                                 Text(playlist.name)
                                 Spacer()
                                 if current?.id == playlist.id {
@@ -81,7 +83,8 @@ struct PlaylistPickerView: View {
             }
         } catch {
             if provider == .spotify {
-                statusText = "Spotify connects in the Mac build phase"
+                statusText =
+                    "Spotify connects in the Mac build phase"
                     + " — playlists from Apple Music work today."
             } else {
                 statusText = "Apple Music isn't authorized. Connect it in Settings first."

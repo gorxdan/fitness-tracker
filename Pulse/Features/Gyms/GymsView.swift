@@ -1,6 +1,6 @@
-import SwiftUI
-import SwiftData
 import MapKit
+import SwiftData
+import SwiftUI
 
 /// Saved gyms and geofence monitoring. Arrival prompts appear when entering a radius.
 struct GymsView: View {
@@ -102,7 +102,10 @@ struct GymEditorView: View {
                         Task { await useCurrentLocation() }
                     } label: {
                         if locating {
-                            HStack { ProgressView(); Text("Locating…") }
+                            HStack {
+                                ProgressView()
+                                Text("Locating…")
+                            }
                         } else {
                             Label("Use current location", systemImage: "location")
                         }

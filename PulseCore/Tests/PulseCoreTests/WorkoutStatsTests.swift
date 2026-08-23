@@ -1,5 +1,6 @@
-import Testing
 import Foundation
+import Testing
+
 @testable import PulseCore
 
 @Test func weeklyVolumeBucketsByWeekAndMuscle() {
@@ -90,7 +91,7 @@ import Foundation
 
 @Test func streakCountsConsecutiveWeeks() {
     let calendar = Calendar(identifier: .iso8601)
-    let now = date(2026, 8, 19, calendar: calendar) // Wednesday
+    let now = date(2026, 8, 19, calendar: calendar)  // Wednesday
     // This week (Mon 17), last week (Mon 10), two weeks ago (Mon 3) — streak 3.
     let dates = [
         date(2026, 8, 18, calendar: calendar),
@@ -117,7 +118,7 @@ import Foundation
     let dates = [
         date(2026, 8, 18, calendar: calendar),
         date(2026, 8, 17, calendar: calendar),
-        date(2026, 8, 12, calendar: calendar), // previous week
+        date(2026, 8, 12, calendar: calendar),  // previous week
     ]
     #expect(WorkoutStats.workoutsThisWeek(dates: dates, now: now, calendar: calendar) == 2)
 }

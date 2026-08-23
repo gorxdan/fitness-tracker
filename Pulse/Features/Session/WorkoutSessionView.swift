@@ -1,5 +1,5 @@
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 /// Mid-workout logging screen: exercises as sections, sets as rows, one-tap repeat.
 struct WorkoutSessionView: View {
@@ -245,7 +245,8 @@ struct WorkoutSessionView: View {
             try await services.music.play(playlist)
             musicMessage = nil
         } catch {
-            musicMessage = playlist.provider == .spotify
+            musicMessage =
+                playlist.provider == .spotify
                 ? "Spotify connects in the Mac build phase — playlist saved."
                 : "Couldn't start playback: \(playlist.name)"
         }

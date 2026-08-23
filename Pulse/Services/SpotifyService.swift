@@ -5,7 +5,7 @@ import Foundation
 @MainActor
 final class SpotifyService {
     func isAvailable() async -> Bool {
-        false // Build phase: check installed Spotify app + session.
+        false  // Build phase: check installed Spotify app + session.
     }
 
     func fetchPlaylists() async throws -> [PlaylistRef] {

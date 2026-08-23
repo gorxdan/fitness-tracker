@@ -18,7 +18,7 @@ extension LocationAccess {
             "Always access active — arrival prompts work even when Pulse is closed."
         case .whenInUse:
             "When-In-Use active. For arrival prompts while the app is closed, "
-            + "allow Always in Settings."
+                + "allow Always in Settings."
         case .denied:
             "Location access is off; turn it on in Settings to use arrival prompts."
         }
@@ -41,7 +41,7 @@ struct GymRegion: Sendable {
 @MainActor
 final class LocationService: NSObject, CLLocationManagerDelegate {
     private let manager = CLLocationManager()
-    private var gymNames: [String: String] = [:] // region identifier → gym name
+    private var gymNames: [String: String] = [:]  // region identifier → gym name
     /// Gyms that should be monitored; armed when permission allows. Cached so a
     /// late permission grant can arm regions saved before it existed.
     private var pendingGyms: [GymRegion] = []
@@ -168,7 +168,7 @@ final class LocationService: NSObject, CLLocationManagerDelegate {
 
     private func handleArrival(regionID: String) {
         guard let name = gymNames[regionID],
-              let id = UUID(uuidString: regionID)
+            let id = UUID(uuidString: regionID)
         else { return }
         Task {
             await Self.scheduleArrivalNotification(gymID: id, gymName: name)

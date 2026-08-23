@@ -170,10 +170,10 @@ final class HealthKitService: HealthReading {
     private func statistics(
         for type: HKQuantityType, from start: Date, to end: Date
     ) async -> HKStatistics? {
-        let predicate = HKQuery.predicateForSamples(withStart: start, end: end)
+        let dateRange = HKQuery.predicateForSamples(withStart: start, end: end)
+        let predicate = HKSamplePredicate.quantitySample(type: type, predicate: dateRange)
         let descriptor = HKStatisticsQueryDescriptor(
-            quantityType: type,
-            quantitySamplePredicate: predicate,
+            predicate: predicate,
             options: [.discreteAverage, .discreteMax]
         )
         return try? await descriptor.result(for: store)

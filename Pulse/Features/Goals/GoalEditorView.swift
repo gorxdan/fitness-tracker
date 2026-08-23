@@ -1,5 +1,5 @@
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 /// Creates a goal. Weekly workouts = count; body weight and e1RM = kg targets
 /// (display converts to the user's unit).
@@ -17,9 +17,10 @@ struct GoalEditorView: View {
     /// Default target expressed in the user's display unit (80 kg ≈ 176.4 lb),
     /// not a bare 80 that reads as 80 lb for pound users.
     init() {
-        let unit = WeightUnit(
-            rawValue: UserDefaults.standard.string(forKey: "weightUnit") ?? ""
-        ) ?? .kilograms
+        let unit =
+            WeightUnit(
+                rawValue: UserDefaults.standard.string(forKey: "weightUnit") ?? ""
+            ) ?? .kilograms
         _targetKg = State(initialValue: unit.fromKg(80))
     }
 

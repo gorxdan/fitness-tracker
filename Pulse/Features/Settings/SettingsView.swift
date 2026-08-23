@@ -1,5 +1,5 @@
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct SettingsView: View {
     @Environment(AppServices.self) private var services
@@ -29,10 +29,12 @@ struct SettingsView: View {
                         }
                     }
                     if healthConnected == false {
-                        Label("Not authorized — workouts still work without it",
-                              systemImage: "info.circle")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
+                        Label(
+                            "Not authorized — workouts still work without it",
+                            systemImage: "info.circle"
+                        )
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                         Button("Open Health settings") {
                             openURL(URL(string: "app-settings:")!)
                         }

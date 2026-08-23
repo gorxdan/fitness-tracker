@@ -1,5 +1,5 @@
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct HomeView: View {
     @Query(sort: \Workout.startedAt, order: .reverse) private var workouts: [Workout]
@@ -11,7 +11,8 @@ struct HomeView: View {
     private var workoutDates: [Date] { workouts.map(\.startedAt) }
     private var allRecords: [SetRecord] { workouts.flatMap { $0.records() } }
     private var thisWeekVolume: Double {
-        let week = Calendar.current.dateInterval(of: .weekOfYear, for: .now)
+        let week =
+            Calendar.current.dateInterval(of: .weekOfYear, for: .now)
             ?? DateInterval(start: .now, end: .now)
         return FitnessMath.totalVolume(
             allRecords

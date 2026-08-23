@@ -1,5 +1,5 @@
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 /// Picks an exercise from the seeded library. Custom exercises are a documented
 /// later feature — scope discipline keeps this a pure picker.

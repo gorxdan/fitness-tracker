@@ -1,6 +1,6 @@
-import SwiftUI
-import SwiftData
 import Charts
+import SwiftData
+import SwiftUI
 
 /// Progress tab: volume, per-exercise trend, body weight/BMI, heart trends, history.
 /// All charts are Swift Charts with system styling, per docs/ARCHITECTURE.md.

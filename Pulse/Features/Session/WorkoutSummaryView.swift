@@ -1,5 +1,5 @@
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 /// Finish flow: title, feel, pain, notes, HR summary — then persists everything
 /// (SwiftData + HealthKit) and closes the session.
@@ -89,8 +89,10 @@ struct WorkoutSummaryView: View {
 
                 if model.playlist != nil, let playlist = model.playlist {
                     Section("Music") {
-                        Label(playlist.name, systemImage: playlist.provider == .appleMusic
-                            ? "music.note" : "music.note.list")
+                        Label(
+                            playlist.name,
+                            systemImage: playlist.provider == .appleMusic
+                                ? "music.note" : "music.note.list")
                     }
                 }
             }

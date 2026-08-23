@@ -123,7 +123,7 @@ final class SessionModel {
 
     private func mutateSet(_ setID: UUID, _ slotID: UUID, _ mutate: (inout SetDraft) -> Void) {
         guard let slotIndex = slots.firstIndex(where: { $0.id == slotID }),
-              let setIndex = slots[slotIndex].sets.firstIndex(where: { $0.id == setID })
+            let setIndex = slots[slotIndex].sets.firstIndex(where: { $0.id == setID })
         else { return }
         mutate(&slots[slotIndex].sets[setIndex])
     }
